@@ -21,7 +21,7 @@ class LogScale {
         this.max = max
         checkMinMax(min, max)
     }
-    
+
     var min: Long = 0
         set(value) {
             checkMinMax(value, max)
@@ -44,7 +44,7 @@ class LogScale {
 
     /**
      * Maps logarithmic 0 - 1 point to a linear number between min and max.
-     * 
+     *
      * * `f(0) = minValue`
      * * `f(1) = maxValue`
      * * `f(x) = (range + 1)^x + minValue`
@@ -58,7 +58,7 @@ class LogScale {
         if (value < min) {
             value = min
         } else if (value > max) {
-            value = max;
+            value = max
         }
 
         return value.coerceIn(min, max)
@@ -75,14 +75,14 @@ class LogScale {
      * @returns Logarithmic value between 0 to 1
      */
     fun linearToLogarithmic(linearValue: Long): Double {
-        val normalizedValue = linearValue - min + 1;
+        val normalizedValue = linearValue - min + 1
 
         return if (normalizedValue <= 0) {
             0.0
         } else if (linearValue >= max) {
             1.0
         } else {
-            ln(normalizedValue.toDouble()) / ln((range() + 1).toDouble());
+            ln(normalizedValue.toDouble()) / ln((range() + 1).toDouble())
         }
     }
 }

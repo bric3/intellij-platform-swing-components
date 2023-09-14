@@ -28,7 +28,7 @@ class ScalableTableView<Item> : TableView<Item> {
             e
         )
     }
-    
+
     constructor() : super()
 
     constructor(model: ListTableModel<Item>?) : super(model)

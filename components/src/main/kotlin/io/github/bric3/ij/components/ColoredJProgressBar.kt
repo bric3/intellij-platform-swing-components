@@ -8,8 +8,8 @@ import javax.swing.JComponent
 import javax.swing.JProgressBar
 
 class ColoredJProgressBar(min: Int, max: Int) : JProgressBar(HORIZONTAL, min, max) {
-    var remainderColor : Color? = null
-    var finishedColor : Color? = null
+    var remainderColor: Color? = null
+    var finishedColor: Color? = null
 
     init {
         isOpaque = false
@@ -54,7 +54,7 @@ class ColoredJProgressBar(min: Int, max: Int) : JProgressBar(HORIZONTAL, min, ma
         private val coloredJProgressBar: ColoredJProgressBar
     ) : DarculaProgressBarUI() {
         override fun getRemainderColor(): Color {
-            return when(val customRemainderColor = coloredJProgressBar.remainderColor) {
+            return when (val customRemainderColor = coloredJProgressBar.remainderColor) {
                 null -> super.getRemainderColor()
                 else -> customRemainderColor
             }
@@ -65,15 +65,6 @@ class ColoredJProgressBar(min: Int, max: Int) : JProgressBar(HORIZONTAL, min, ma
                 null -> superGetFinishedColor(c)
                 else -> customFinishedColor
             }
-            // val finishedColor = superGetFinishedColor(c)
-            //
-            // return when {
-            //     UIUtil.isUnderDarcula() -> when {
-            //         coloredJProgressBar.brighter -> finishedColor.brighter()
-            //         else -> finishedColor
-            //     }
-            //     else -> finishedColor.brighter()
-            // }
         }
 
         override fun getFinishedColor(): Color {
@@ -93,6 +84,7 @@ class ColoredJProgressBar(min: Int, max: Int) : JProgressBar(HORIZONTAL, min, ma
         }
 
         // Handle API change in 231, getFinishedColor now takes a JComponent
+        @Suppress("PrivatePropertyName")
         private val super_getFinishedColor_MH = try {
             MethodHandles.privateLookupIn(DarculaProgressBarUI::class.java, MethodHandles.lookup())
                 .findSpecial(
@@ -118,22 +110,6 @@ class ColoredJProgressBar(min: Int, max: Int) : JProgressBar(HORIZONTAL, min, ma
 
                 )
             }
-        }
-
-        private val super_getRemainderColor_MH = try {
-            MethodHandles.privateLookupIn(DarculaProgressBarUI::class.java, MethodHandles.lookup())
-                .findSpecial(
-                    DarculaProgressBarUI::class.java,
-                    "getRemainderColor",
-                    MethodType.methodType(Color::class.java),
-                    DarculaProgressBarUI::class.java
-                )
-        } catch (e: NoSuchMethodError) {
-            throw IllegalStateException(
-                "Fix to recalculate row height on updateUI (like switching to/from presentation mode) broken, please update",
-                e
-
-            )
         }
     }
 }

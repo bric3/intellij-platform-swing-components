@@ -11,7 +11,7 @@ object SomeData {
      *
      * Using [On Reading](https://en.wikipedia.org/wiki/On_reading)
      */
-    val japaneseNumbers : List<JapaneseNumber> = listOf(
+    val japaneseNumbers: List<JapaneseNumber> = listOf(
         Triple(0, "rei", "れい"),
         Triple(1, "ichi", "いち"),
         Triple(2, "ni", "に"),
@@ -44,16 +44,16 @@ object SomeData {
         Triple(5000, "go-sen", "ごせん"),
         Triple(10_000, "sen", "せん"),
         Triple(100_000, "juu-man", "10万"),
-        Triple(1_000_000,"hyaku-man", "100万"),
+        Triple(1_000_000, "hyaku-man", "100万"),
         Triple(100_000_000, "oku", "おく"),
-        Triple(1_000_000_000_000 ,"chō", "ちょう"),
+        Triple(1_000_000_000_000, "chō", "ちょう"),
         Triple(10_000_000_000_000_000, "kei", "けい"),
     )
 
     /**
      * Numbers from 0 to 16 in English To Japanese, then dozens then, higher orders of magnitude.
      */
-    val englishToJapanese : List<EnglishToJapaneseNumber> = listOf(
+    val englishToJapanese: List<EnglishToJapaneseNumber> = listOf(
         Triple(0, "zero", "rei"),
         Triple(1, "one", "ichi"),
         Triple(2, "two", "ni"),
@@ -88,7 +88,7 @@ object SomeData {
         Triple(100_000, "one hundred thousand", "juu-man"),
         Triple(1_000_000, "one million", "hyaku-man"),
         Triple(100_000_000, "one hundred million", "oku"),
-        Triple(1_000_000_000_000 ,"one trillion", "chō"),
+        Triple(1_000_000_000_000, "one trillion", "chō"),
         Triple(10_000_000_000_000_000, "ten quadrillion", "kei"),
     )
 }

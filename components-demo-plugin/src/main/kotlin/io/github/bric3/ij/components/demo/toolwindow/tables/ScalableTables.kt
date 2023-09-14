@@ -1,5 +1,3 @@
-@file:Suppress("DialogTitleCapitalization")
-
 package io.github.bric3.ij.components.demo.toolwindow.tables
 
 import com.intellij.ui.dsl.builder.Align

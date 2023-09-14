@@ -43,7 +43,7 @@ class ScalableJBTable : JBTable {
         // inferior to zero, the calculation of the row height happens again.
         //
         // see https://youtrack.jetbrains.com/issue/IDEA-289745
-        // 
+        //
         // updateUI can be called by parent before the field is initialized
         myRowHeight_VH?.set(this, -1)
         super.updateUI()

@@ -1,5 +1,3 @@
-@file:Suppress("DialogTitleCapitalization")
-
 package io.github.bric3.ij.components.demo.toolwindow
 
 import com.intellij.icons.AllIcons

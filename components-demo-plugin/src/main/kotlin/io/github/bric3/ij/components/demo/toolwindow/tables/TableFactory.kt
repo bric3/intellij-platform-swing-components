@@ -67,7 +67,7 @@ object TableFactory {
 
         cs.launch {
             while (true) {
-                dataset.forEach{
+                dataset.forEach {
                     withContext(Dispatchers.EDT) {
                         model.addRow(it)
                     }
