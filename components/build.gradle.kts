@@ -21,6 +21,10 @@ dependencies {
     compileOnly(libs.annotations)
 }
 
+kotlin {
+    jvmToolchain(17)
+}
+
 intellij {
     pluginName = "ignored"
     version = properties("platformVersion")
@@ -68,10 +72,13 @@ tasks {
     listOf(
         runIde,
         prepareSandbox,
+        prepareTestingSandbox,
         runPluginVerifier,
+        buildSearchableOptions,
         jarSearchableOptions,
         verifyPlugin,
         instrumentCode,
+        classpathIndexCleanup,
         buildPlugin,
         patchPluginXml,
     ).forEach {

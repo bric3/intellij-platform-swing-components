@@ -24,12 +24,12 @@ class DemoToolWindowFactory : ToolWindowFactory {
             DumbAwareAction.create("Refresh", AllIcons.Actions.Refresh) {
                 toolWindow.contentManager.removeAllContents(true)
 
-                val content = ContentFactory.getInstance().createContent(
+                val newContent = ContentFactory.getInstance().createContent(
                     demoToolWindow.getContent(),
                     "Swing Components",
                     false
                 )
-                toolWindow.contentManager.addContent(content)
+                toolWindow.contentManager.addContent(newContent)
             }
         ))
     }

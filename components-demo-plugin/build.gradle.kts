@@ -15,6 +15,10 @@ dependencies {
     implementation(project(":components"))
 }
 
+kotlin {
+    jvmToolchain(17)
+}
+
 intellij {
     pluginName = "IntelliJ Platform Swing Components Demo"
     version = properties("demoPlatformVersion")
@@ -39,5 +43,16 @@ tasks {
         version = properties("pluginVersion")
         sinceBuild = properties("pluginSinceBuild")
         untilBuild = properties("pluginUntilBuild")
+    }
+
+    listOf(
+        runPluginVerifier,
+        verifyPlugin,
+        instrumentCode,
+        assemble,
+    ).forEach {
+        it {
+            enabled = false
+        }
     }
 }
