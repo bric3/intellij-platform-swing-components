@@ -31,7 +31,7 @@ tasks {
         jvmArgs(
             "-XX:+UnlockDiagnosticVMOptions",
             "-XX:+IgnoreUnrecognizedVMOptions",
-            // "-XX:+AllowEnhancedClassRedefinition" // for DCEVM
+            "-XX:+AllowEnhancedClassRedefinition" // for DCEVM
         )
     }
 

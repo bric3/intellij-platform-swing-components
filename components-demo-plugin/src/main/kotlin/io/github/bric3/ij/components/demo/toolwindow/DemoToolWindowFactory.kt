@@ -2,6 +2,8 @@
 
 package io.github.bric3.ij.components.demo.toolwindow
 
+import com.intellij.icons.AllIcons
+import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
@@ -17,13 +19,25 @@ class DemoToolWindowFactory : ToolWindowFactory {
             false
         )
         toolWindow.contentManager.addContent(content)
+        toolWindow.setTitleActions(listOf(
+            DumbAwareAction.create("Refresh", AllIcons.Actions.Refresh) {
+                toolWindow.contentManager.removeAllContents(true)
+
+                val content = ContentFactory.getInstance().createContent(
+                    demoToolWindow.getContent(),
+                    "Swing Components",
+                    false
+                )
+                toolWindow.contentManager.addContent(content)
+            }
+        ))
     }
 
     override fun shouldBeAvailable(project: Project) = true
 
     class DemoToolWindow(private val project: Project, private val toolWindow: ToolWindow) {
         fun getContent() = SingleHeightTabs(project, toolWindow.disposable).apply {
-            addTab(Tab1.tabInfo)
+            addTab(ScaalableTables.tabInfo)
         }
     }
 }

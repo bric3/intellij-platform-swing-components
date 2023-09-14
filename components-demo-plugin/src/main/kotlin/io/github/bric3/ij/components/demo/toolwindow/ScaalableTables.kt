@@ -37,7 +37,7 @@ import kotlin.time.Duration.Companion.seconds
 
 typealias NumberToJapanese = Triple<Int, String, String>
 
-class Tab1 : BorderLayoutPanel() {
+class ScaalableTables : BorderLayoutPanel() {
     private val cs = CoroutineScope(SupervisorJob())
 
     init {
@@ -223,8 +223,8 @@ class Tab1 : BorderLayoutPanel() {
 
     companion object {
         val tabInfo
-            get() = TabInfo(Tab1()).apply {
-                setText("Tab 1")
+            get() = TabInfo(ScaalableTables()).apply {
+                setText("Scalable Tables")
             }
     }
 }
