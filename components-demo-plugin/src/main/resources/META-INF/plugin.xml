@@ -1,0 +1,24 @@
+<idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude" require-restart="false">
+    <id>io.github.bric3.ij-platform.swing-components.demo</id>
+    <!--suppress PluginXmlValidity -->
+    <!-- This plugin won;t go on the marketplace -->
+    <name>IntelliJ Platform Swing Components Demo</name>
+    <vendor url="https://github.com/bric3">Brice Dutheil</vendor>
+
+    <description><![CDATA[
+        Sets breakpoint in <code>CoroutinePostStartupActivityKt</code> this plugin in debug.
+    ]]></description>
+    <change-notes/>
+
+    <!-- please see https://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
+         on how to target different products -->
+    <depends>com.intellij.modules.platform</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <toolWindow factoryClass="io.github.bric3.ij.components.demo.toolwindow.DemoToolWindowFactory" id="DemoToolWindow"/>
+    </extensions>
+
+    <applicationListeners>
+        <listener class="io.github.bric3.ij.components.demo.listener.DemoAppActivationListener" topic="com.intellij.openapi.application.ApplicationActivationListener"/>
+    </applicationListeners>
+</idea-plugin>

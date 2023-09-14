@@ -1,0 +1,25 @@
+= IntelliJ Platform Swing Components
+
+The goal of this project is to build a library of UI components
+for the IntelliJ Platform, since IntelliJ is based on Swing, these
+components are pure Swing but may use IntelliJ specific APIs.
+
+The primary language is Kotlin, but using these components from Java
+should be supported, if not then it's an API bug.
+
+== Demo of these components is provided via the demo plugin.
+
+Run the `:components-demo-plugin:runIde` task to launch the demo plugin.
+
+[source,bash]
+----
+./gradlew :components-demo-plugin:runIde
+----
+
+Or the shipped run configuration _demo-plugin [runIde]_ for IntelliJ IDEA.
+
+== Tests
+
+I don't exactly know how to test Swing components at this time,
+so this part is skipped for now. This is definitely an area that
+needs help.
