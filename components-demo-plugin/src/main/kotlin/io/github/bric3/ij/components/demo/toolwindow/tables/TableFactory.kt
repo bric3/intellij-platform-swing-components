@@ -19,6 +19,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.swing.JPanel
 import javax.swing.table.TableCellRenderer
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 object TableFactory {
@@ -70,9 +71,9 @@ object TableFactory {
                     withContext(Dispatchers.EDT) {
                         model.addRow(it)
                     }
-                    delay(1.seconds)
+                    delay(250.milliseconds)
                 }
-                delay(30.seconds)
+                delay(60.seconds)
                 withContext(Dispatchers.EDT) {
                     invokeLater {
                         model.items = mutableListOf()

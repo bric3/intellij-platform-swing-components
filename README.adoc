@@ -18,6 +18,30 @@ Run the `:components-demo-plugin:runIde` task to launch the demo plugin.
 
 Or the shipped run configuration _demo-plugin [runIde]_ for IntelliJ IDEA.
 
+== Components
+
+* `ScaledJBTable` ans `ScaledTableView` fix an issue regarding the row height
+when using custom renderer and switching back and forth between presentation mode.
++ Compare without fix and with the fix:
++
+.Presentation mode *before* fix
+image::.github/images/ScalableJTable-presentation-mode-nofix.png[Without fix]
++
+.Presentation mode *after* fix
+image::.github/images/ScalableJTable-presentation-mode-withfix.png[After fix]
++
+.Zoom at 150% *before* fix
+image::.github/images/ScalableJTable-zoom-150-nofix.png[Without fix]
++
+.Zoom at 150% *after* fix
+image::.github/images/ScalableJTable-zoom-150-withfix.png[Without fix]
+
+
+* `ColoredProgressBar`, it allows using a custom color for the progress bar,
+the `JProgressBar` with the regular DarculaUI does not allow that.
++
+image::.github/images/ColoredProgressBar.png[ColoredProgressBar]
+
 == Tests
 
 I don't exactly know how to test Swing components at this time,

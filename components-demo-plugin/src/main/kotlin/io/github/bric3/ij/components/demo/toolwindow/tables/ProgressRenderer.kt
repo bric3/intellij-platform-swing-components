@@ -9,10 +9,10 @@ import com.intellij.ui.SimpleTextAttributes
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.ListTableModel
 import com.intellij.util.ui.components.BorderLayoutPanel
+import io.github.bric3.ij.components.ColoredJProgressBar
 import java.awt.BorderLayout
 import java.awt.Color
 import javax.swing.JComponent
-import javax.swing.JProgressBar
 import javax.swing.JTable
 import javax.swing.SwingConstants
 import javax.swing.event.TableModelEvent
@@ -26,7 +26,7 @@ class ProgressRenderer : BorderLayoutPanel(), TableCellRenderer {
         border = JBUI.Borders.empty(4)
     }
 
-    private val jProgressBar = JProgressBar(SwingConstants.HORIZONTAL, 0, 100)
+    private val jProgressBar = ColoredJProgressBar(0, 100)
     private var logScale: LogScale? = null
     private var currentMax = -1L
 
@@ -80,20 +80,36 @@ class ProgressRenderer : BorderLayoutPanel(), TableCellRenderer {
                 SimpleTextAttributes.GRAYED_BOLD_ATTRIBUTES
             )
 
-
-
-            append(b, SimpleTextAttributes.fromTextAttributes(EditorColorsManager.getInstance().globalScheme.getAttributes(
-                DefaultLanguageHighlighterColors.KEYWORD
-            )))
+            append(
+                b, SimpleTextAttributes.fromTextAttributes(
+                    EditorColorsManager.getInstance().globalScheme.getAttributes(
+                        DefaultLanguageHighlighterColors.KEYWORD
+                    )
+                )
+            )
             append(" - ")
-            append(c, SimpleTextAttributes.fromTextAttributes(EditorColorsManager.getInstance().globalScheme.getAttributes(
-                DefaultLanguageHighlighterColors.STRING
-            )))
+            append(
+                c, SimpleTextAttributes.fromTextAttributes(
+                    EditorColorsManager.getInstance().globalScheme.getAttributes(
+                        DefaultLanguageHighlighterColors.STRING
+                    )
+                )
+            )
         }
 
-        jProgressBar.value = logaritmicPercentageOf(a)
+        val logarithmicPercentage = logaritmicPercentageOf(a)
+        jProgressBar.value = logarithmicPercentage
+        jProgressBar.finishedColor = randomColor(logarithmicPercentage)
 
         return this
+    }
+
+    private fun randomColor(value: Int): Color? {
+        return Color.getHSBColor(
+            0.1f,
+            value.toFloat() / 100,
+            0.9f
+        )
     }
 
     fun logaritmicPercentageOf(value: Long): Int {
