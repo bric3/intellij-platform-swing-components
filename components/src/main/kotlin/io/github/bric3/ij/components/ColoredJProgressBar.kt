@@ -21,6 +21,11 @@ import javax.swing.JProgressBar
 class ColoredJProgressBar(min: Int, max: Int) : JProgressBar(HORIZONTAL, min, max) {
     var remainderColor: Color? = null
     var finishedColor: Color? = null
+    var ratio: Double
+        get() = value.toDouble() / model.maximum
+        set(ratio) {
+            value = (ratio * model.maximum).toInt()
+        }
 
     init {
         isOpaque = false
@@ -44,10 +49,6 @@ class ColoredJProgressBar(min: Int, max: Int) : JProgressBar(HORIZONTAL, min, ma
             this.width = width
         } // setter needed to adjust the width, kotlin will use the setter
         return this
-    }
-
-    fun setRatio(ratio: Double) {
-        value = (ratio * 100).toInt()
     }
 
     override fun updateUI() {
