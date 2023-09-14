@@ -66,6 +66,10 @@ tasks {
 
         manifest {
             attributes["Implementation-Version"] = version
+            attributes["Implementation-Title"] = rootProject.name
+            attributes["Implementation-Platform"] = attributes["Build-SDK"] ?: "unknown"
+            // clear gradle-intellij-plugin keys
+            attributes.keys.removeIf { it.startsWith("Build-") }
         }
     }
 
