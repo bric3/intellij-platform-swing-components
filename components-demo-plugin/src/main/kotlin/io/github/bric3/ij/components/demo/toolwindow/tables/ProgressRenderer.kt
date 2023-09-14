@@ -92,20 +92,25 @@ class ProgressRenderer : BorderLayoutPanel(), TableCellRenderer {
             )
 
             append(
-                b, SimpleTextAttributes.fromTextAttributes(
+                b,
+                SimpleTextAttributes.fromTextAttributes(
                     EditorColorsManager.getInstance().globalScheme.getAttributes(
                         DefaultLanguageHighlighterColors.KEYWORD
                     )
                 )
             )
             append(" - ")
+            val isHiragana = c.isNotEmpty() && Character.UnicodeBlock.of(c.codePointAt(0)) == Character.UnicodeBlock.HIRAGANA
+            if (isHiragana) append("「")
             append(
-                c, SimpleTextAttributes.fromTextAttributes(
+                c,
+                SimpleTextAttributes.fromTextAttributes(
                     EditorColorsManager.getInstance().globalScheme.getAttributes(
                         DefaultLanguageHighlighterColors.STRING
                     )
                 )
             )
+            if (isHiragana) append("」")
         }
 
         val logarithmicPercentage = logaritmicPercentageOf(a)
