@@ -10,6 +10,7 @@ changelog = "2.1.2"
 detekt = "1.23.1"
 dokka = "1.9.0"
 gradleIntelliJPlugin = "1.15.0"
+spotless = "6.21.0"
 qodana = "0.1.13"
 
 [libraries]
@@ -27,4 +28,5 @@ gradleIntelliJPlugin = { id = "org.jetbrains.intellij", version.ref = "gradleInt
 kotlin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
 qodana = { id = "org.jetbrains.qodana", version.ref = "qodana" }

@@ -47,3 +47,24 @@ image::.github/images/ColoredProgressBar.png[ColoredProgressBar]
 I don't exactly know how to test Swing components at this time,
 so this part is skipped for now. This is definitely an area that
 needs help.
+
+== License
+
+This work is licensed under *Mozilla Public License 2.0*, basically
+this license allows commercial use and distribution under a proprietary
+license, but it is required:
+
+. to mention the origin and the associated license somewhere.
+. to disclose any modifications under the same license.
+
+For more details it is encouraged to read the https://www.mozilla.org/en-US/MPL/2.0/[license itself].
+
+> IntelliJ Platform Swing Components
+>
+> Copyright (c) 2023 - Brice Dutheil
+>
+> This Source Code Form is subject to the terms of the Mozilla Public
+> License, v. 2.0. If a copy of the MPL was not distributed with this
+> file, You can obtain one at https://mozilla.org/MPL/2.0/.
+>
+> SPDX-License-Identifier: MPL-2.0
