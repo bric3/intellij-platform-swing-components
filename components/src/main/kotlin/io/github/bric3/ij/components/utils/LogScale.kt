@@ -9,11 +9,16 @@
  *
  * SPDX-License-Identifier: MPL-2.0
  */
-package io.github.bric3.ij.components.demo.toolwindow.tables
+package io.github.bric3.ij.components.utils
 
 import kotlin.math.ln
 import kotlin.math.pow
 
+/**
+ * Simple utility class to convert linear values to logarithmic values and vice versa.
+ *
+ * The class handles special values like `0` and `1`.
+ */
 class LogScale {
     /**
      * Adjusting constant to avoid `log(0) = -Infinity` (undefined) and `log(1) = 0`.
@@ -25,7 +30,7 @@ class LogScale {
      * This process can be seen as a form of smoothing because it could smooth `0` into
      * a more gradual change.
      */
-    val constant = 1e-10
+    private val constant = 1e-10
 
     constructor(min: Long, max: Long) {
         this.min = min
@@ -64,7 +69,7 @@ class LogScale {
      * @returns between min and max inclusive
      */
     fun logarithmicToLinear(logValue: Double): Long {
-        var value = Math.round((range() + 1).toDouble().pow(logValue) + min - 1)
+        var value = Math.round((range() + constant).pow(logValue) + min - constant)
 
         if (value < min) {
             value = min
@@ -86,14 +91,14 @@ class LogScale {
      * @returns Logarithmic value between 0 to 1
      */
     fun linearToLogarithmic(linearValue: Long): Double {
-        val normalizedValue = linearValue - min + 1
+        val normalizedValue = linearValue - min + constant
 
         return if (normalizedValue <= 0) {
             0.0
         } else if (linearValue >= max) {
             1.0
         } else {
-            ln(normalizedValue.toDouble()) / ln((range() + 1).toDouble())
+            ln(normalizedValue) / ln((range() + constant))
         }
     }
 }
