@@ -21,6 +21,7 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.ListTableModel
 import com.intellij.util.ui.components.BorderLayoutPanel
 import io.github.bric3.ij.components.ColoredJProgressBar
+import io.github.bric3.ij.components.utils.LogScale
 import java.awt.BorderLayout
 import java.awt.Color
 import javax.swing.JComponent
@@ -30,7 +31,7 @@ import javax.swing.event.TableModelEvent
 import javax.swing.event.TableModelListener
 import javax.swing.table.TableCellRenderer
 
-class ProgressRenderer : BorderLayoutPanel(), TableCellRenderer {
+internal class ProgressRenderer : BorderLayoutPanel(), TableCellRenderer {
     private val htmlConverter = HtmlToSimpleColoredComponentConverter()
 
     private val simpleColoredComponent = SimpleColoredComponent().apply {

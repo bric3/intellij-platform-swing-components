@@ -15,7 +15,7 @@ typealias NumberMapping = Triple<Long, String, String>
 typealias EnglishToJapaneseNumber = NumberMapping
 typealias JapaneseNumber = NumberMapping
 
-object SomeData {
+internal object SomeData {
 
     /**
      * Numbers from 0 to 16 in Japanese, then dozens then, higher orders of magnitude.

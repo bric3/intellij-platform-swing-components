@@ -33,7 +33,7 @@ import javax.swing.table.TableCellRenderer
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
-object TableFactory {
+internal object TableFactory {
     private val cs = CoroutineScope(SupervisorJob())
 
     fun <T> table(tableConstructor: (ListTableModel<T>) -> JBTable, model: ListTableModel<T>): JPanel {

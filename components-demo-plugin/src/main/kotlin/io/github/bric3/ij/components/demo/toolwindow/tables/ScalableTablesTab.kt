@@ -23,7 +23,7 @@ import io.github.bric3.ij.components.demo.toolwindow.tables.TableFactory.table
 import io.github.bric3.ij.components.table.ScalableJBTable
 import io.github.bric3.ij.components.table.ScalableTableView
 
-class ScalableTables : BorderLayoutPanel() {
+class ScalableTablesTab : BorderLayoutPanel() {
     init {
         addToCenter(
             panel {
@@ -50,7 +50,7 @@ class ScalableTables : BorderLayoutPanel() {
 
     companion object {
         val tabInfo
-            get() = TabInfo(ScalableTables()).apply {
+            get() = TabInfo(ScalableTablesTab()).apply {
                 setText("Scalable Tables")
             }
     }

@@ -18,7 +18,7 @@ import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.ui.content.ContentFactory
 import com.intellij.ui.tabs.impl.SingleHeightTabs
-import io.github.bric3.ij.components.demo.toolwindow.tables.ScalableTables
+import io.github.bric3.ij.components.demo.toolwindow.tables.ScalableTablesTab
 
 class DemoToolWindowFactory : ToolWindowFactory {
     override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
@@ -47,7 +47,7 @@ class DemoToolWindowFactory : ToolWindowFactory {
 
     class DemoToolWindow(private val project: Project, private val toolWindow: ToolWindow) {
         fun getContent() = SingleHeightTabs(project, toolWindow.disposable).apply {
-            addTab(ScalableTables.tabInfo)
+            addTab(ScalableTablesTab.tabInfo)
         }
     }
 }
