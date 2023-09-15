@@ -22,7 +22,6 @@ import com.intellij.util.ui.ListTableModel
 import com.intellij.util.ui.components.BorderLayoutPanel
 import io.github.bric3.ij.components.ColoredJProgressBar
 import io.github.bric3.ij.components.utils.LogScale
-import java.awt.BorderLayout
 import java.awt.Color
 import javax.swing.JComponent
 import javax.swing.JTable
@@ -31,36 +30,52 @@ import javax.swing.event.TableModelEvent
 import javax.swing.event.TableModelListener
 import javax.swing.table.TableCellRenderer
 
-internal class ProgressRenderer : BorderLayoutPanel(), TableCellRenderer {
-    private val htmlConverter = HtmlToSimpleColoredComponentConverter()
-
-    private val simpleColoredComponent = SimpleColoredComponent().apply {
-        border = JBUI.Borders.empty(4)
-    }
-
-    private val jProgressBar = ColoredJProgressBar(0, 100)
-    private var logScale: LogScale? = null
-    private var currentMax = -1L
-
-    @Suppress("UNCHECKED_CAST", "ObjectLiteralToLambda") // obect needed to auto-register in the model
-    private val myTableModelListener = object : TableModelListener {
-        override fun tableChanged(e: TableModelEvent) {
-            computeMaxValue(e.source as ListTableModel<NumberMapping>)
-        }
-    }
-
-    private fun computeMaxValue(listTableModel: ListTableModel<NumberMapping>) {
-        logScale = when (val max = ArrayList(listTableModel.items).maxBy(NumberMapping::first)) {
-            null -> null
-            else -> LogScale(0, max.first)
-        }
-    }
+internal class CompositeTableCellRenderer(
+    private val center: TableCellRenderer? = null,
+    private val north: TableCellRenderer? = null,
+    private val south: TableCellRenderer? = null,
+    private val east: TableCellRenderer? = null,
+    private val west: TableCellRenderer? = null,
+) : BorderLayoutPanel(), TableCellRenderer {
 
     init {
         isOpaque = true
         border = JBUI.Borders.empty(2)
-        add(simpleColoredComponent, BorderLayout.CENTER)
-        add(jProgressBar, BorderLayout.SOUTH)
+    }
+
+    override fun getTableCellRendererComponent(
+        table: JTable,
+        value: Any?,
+        isSelected: Boolean,
+        hasFocus: Boolean,
+        row: Int,
+        column: Int,
+    ): JComponent? {
+        removeAll()
+        center?.run { getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column) }?.let {
+            addToCenter(it)
+        }
+        north?.run { getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column) }?.let {
+            addToTop(it)
+        }
+        south?.run { getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column) }?.let {
+            addToBottom(it)
+        }
+        east?.run { getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column) }?.let {
+            addToRight(it)
+        }
+        west?.run { getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column) }?.let {
+            addToLeft(it)
+        }
+        return this
+    }
+}
+
+class NumberMappingTextRenderer : TableCellRenderer {
+    private val htmlConverter = HtmlToSimpleColoredComponentConverter()
+
+    private val simpleColoredComponent = SimpleColoredComponent().apply {
+        border = JBUI.Borders.empty(4)
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -72,15 +87,6 @@ internal class ProgressRenderer : BorderLayoutPanel(), TableCellRenderer {
         row: Int,
         column: Int,
     ): JComponent? {
-        (table.model as ListTableModel<NumberMapping>).run {
-            if (logScale == null) {
-                computeMaxValue(this)
-            }
-            if (myTableModelListener !in tableModelListeners) {
-                addTableModelListener(myTableModelListener)
-            }
-        }
-
         val (a, b, c) = value as? NumberMapping ?: return null
         simpleColoredComponent.apply {
             clear()
@@ -113,15 +119,54 @@ internal class ProgressRenderer : BorderLayoutPanel(), TableCellRenderer {
             )
             if (isHiragana) append("」")
         }
+        return simpleColoredComponent
+    }
+}
 
-        val logarithmicPercentage = logaritmicPercentageOf(a)
-        jProgressBar.value = logarithmicPercentage
-        jProgressBar.finishedColor = randomColor(logarithmicPercentage)
+@Suppress("UNCHECKED_CAST", "ObjectLiteralToLambda") // object needed to auto-register in the model
+class NumberLogScaleRenderer : TableCellRenderer {
+    private val jProgressBar = ColoredJProgressBar(0, 100)
+    private var logScale: LogScale? = null
 
-        return this
+    private val myTableModelListener = object : TableModelListener {
+        override fun tableChanged(e: TableModelEvent) {
+            computeMaxValue(e.source as ListTableModel<NumberMapping>)
+        }
     }
 
-    private fun randomColor(value: Int): Color? {
+    override fun getTableCellRendererComponent(
+        table: JTable,
+        value: Any?,
+        isSelected: Boolean,
+        hasFocus: Boolean,
+        row: Int,
+        column: Int
+    ): JComponent? {
+        (table.model as ListTableModel<NumberMapping>).run {
+            if (logScale == null) {
+                computeMaxValue(this)
+            }
+            if (myTableModelListener !in tableModelListeners) {
+                addTableModelListener(myTableModelListener)
+            }
+        }
+
+        val (a, b, c) = value as? NumberMapping ?: return null
+        val logarithmicPercentage = logarithmicPercentageOf(a)
+        jProgressBar.value = logarithmicPercentage
+        jProgressBar.finishedColor = colorIntensity(logarithmicPercentage)
+
+        return jProgressBar
+    }
+
+    private fun computeMaxValue(listTableModel: ListTableModel<NumberMapping>) {
+        logScale = when (val max = ArrayList(listTableModel.items).maxByOrNull(NumberMapping::first)) {
+            null -> null
+            else -> LogScale(0, max.first)
+        }
+    }
+
+    private fun colorIntensity(value: Int): Color? {
         return Color.getHSBColor(
             0.1f,
             value.toFloat() / 100,
@@ -129,7 +174,7 @@ internal class ProgressRenderer : BorderLayoutPanel(), TableCellRenderer {
         )
     }
 
-    fun logaritmicPercentageOf(value: Long): Int {
+    private fun logarithmicPercentageOf(value: Long): Int {
         val p = when (val ls = logScale) {
             null -> 0
             else -> ls.linearToLogarithmic(value) * 100

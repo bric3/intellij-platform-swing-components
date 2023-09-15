@@ -19,6 +19,7 @@ import com.intellij.util.ui.components.BorderLayoutPanel
 import io.github.bric3.ij.components.demo.toolwindow.tables.SomeData.englishToJapanese
 import io.github.bric3.ij.components.demo.toolwindow.tables.SomeData.japaneseNumbers
 import io.github.bric3.ij.components.demo.toolwindow.tables.TableFactory.modelLoadingAsynchronously
+import io.github.bric3.ij.components.demo.toolwindow.tables.TableFactory.numberScaleRender
 import io.github.bric3.ij.components.demo.toolwindow.tables.TableFactory.table
 import io.github.bric3.ij.components.table.ScalableJBTable
 import io.github.bric3.ij.components.table.ScalableTableView
@@ -32,13 +33,21 @@ class ScalableTablesTab : BorderLayoutPanel() {
                 }
                 group(ScalableJBTable::class.simpleName!!, false) {
                     row {
-                        cell(table(::ScalableJBTable, modelLoadingAsynchronously(englishToJapanese)).second).align(Align.FILL)
+                        cell(table(
+                            ::ScalableJBTable,
+                            modelLoadingAsynchronously(englishToJapanese, numberScaleRender())).second
+                        )
+                            .align(Align.FILL)
                             .comment("This table is a JBTable that scales correctly the custom renderer when to presentation mode")
                     }.resizableRow()
                 }.resizableRow()
                 group(ScalableTableView::class.simpleName!!, false) {
                     row {
-                        cell(table(::ScalableTableView, modelLoadingAsynchronously(japaneseNumbers)).second).align(Align.FILL)
+                        cell(table(
+                            ::ScalableTableView,
+                            modelLoadingAsynchronously(japaneseNumbers, numberScaleRender())).second
+                        )
+                            .align(Align.FILL)
                             .comment("This table is a JBTable that scales correctly the custom renderer when to presentation mode")
                     }.resizableRow()
                 }.resizableRow()

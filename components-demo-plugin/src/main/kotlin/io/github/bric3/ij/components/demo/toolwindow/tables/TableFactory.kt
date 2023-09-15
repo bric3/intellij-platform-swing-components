@@ -73,17 +73,29 @@ internal object TableFactory {
         }
     }
 
-    fun model(dataset: List<NumberMapping>): ListTableModel<NumberMapping> {
-        val model = ListTableModel<NumberMapping>(
-            arrayOf(NumberMappingColumnInfo("Numbers")),
-            dataset
+    fun numberScaleRender(): TableCellRenderer {
+        return CompositeTableCellRenderer(
+            center = NumberMappingTextRenderer(),
+            south = NumberLogScaleRenderer(),
         )
-        return model
     }
 
-    fun modelLoadingAsynchronously(dataset: List<NumberMapping>): ListTableModel<NumberMapping> {
+    fun model(
+        dataset: List<NumberMapping>,
+        tableCellRenderer: TableCellRenderer? = null
+    ): ListTableModel<NumberMapping> {
+        return ListTableModel(
+            arrayOf(NumberMappingColumnInfo("Numbers", tableCellRenderer)),
+            dataset
+        )
+    }
+
+    fun modelLoadingAsynchronously(
+        dataset: List<NumberMapping>,
+        tableCellRenderer: TableCellRenderer? = null
+    ): ListTableModel<NumberMapping> {
         val model = ListTableModel<NumberMapping>(
-            NumberMappingColumnInfo("Numbers")
+            NumberMappingColumnInfo("Numbers", tableCellRenderer)
         )
 
         cs.launch {
@@ -105,13 +117,13 @@ internal object TableFactory {
         return model
     }
 
-    class NumberMappingColumnInfo(name: String) : ColumnInfo<NumberMapping, NumberMapping>(name) {
-        private val sharedRenderer = ProgressRenderer()
+    class NumberMappingColumnInfo(name: String, tableCellRenderer: TableCellRenderer? = null) : ColumnInfo<NumberMapping, NumberMapping>(name) {
+        private val sharedRenderer = tableCellRenderer
         override fun valueOf(item: NumberMapping?): NumberMapping? {
             return item
         }
 
-        override fun getRenderer(item: NumberMapping?): TableCellRenderer {
+        override fun getRenderer(item: NumberMapping?): TableCellRenderer? {
             return sharedRenderer
         }
 
