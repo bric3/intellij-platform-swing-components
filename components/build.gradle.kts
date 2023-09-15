@@ -72,15 +72,28 @@ tasks {
         archiveBaseName.set(baseName)
         archiveClassifier.set("javadoc")
         from(dokkaHtml)
+        from(file("$rootDir/LICENSE")) {
+            rename("LICENSE", "LICENSE-$baseName")
+        }
+    }
+
+    val sourceJar by registering(Jar::class) {
+        duplicatesStrategy = DuplicatesStrategy.FAIL
+        archiveBaseName.set(baseName)
+        archiveClassifier.set("sources")
+        from(sourceSets.main.map(SourceSet::getAllSource))
+        from(file("$rootDir/LICENSE")) {
+            rename("LICENSE", "LICENSE-$baseName")
+        }
     }
 
     assemble {
-        dependsOn(javadocJar)
+        dependsOn(javadocJar, sourceJar)
     }
 
     val jar by getting(Jar::class) {
         archiveBaseName.set(baseName)
-        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+        duplicatesStrategy = DuplicatesStrategy.FAIL
         isPreserveFileTimestamps = false
         isReproducibleFileOrder = true
 
@@ -91,6 +104,10 @@ tasks {
             // clear gradle-intellij-plugin keys
             attributes.keys.removeIf { it.startsWith("Build-") }
             println("Manifest attributes: ${attributes["Implementation-Title"]}")
+        }
+
+        from(file("$rootDir/LICENSE")) {
+            rename("LICENSE", "LICENSE-$baseName")
         }
     }
 
