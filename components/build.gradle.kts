@@ -23,6 +23,8 @@ plugins {
     alias(libs.plugins.qodana)
 }
 
+group = "io.github.bric3.intellij-platform"
+
 repositories {
     mavenCentral()
 }
@@ -69,17 +71,23 @@ tasks {
         from(dokkaHtml)
     }
 
-    withType<Jar>() {
+    assemble {
+        dependsOn(javadocJar)
+    }
+
+    val jar by getting(Jar::class) {
+        archiveBaseName.set("swing-components")
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE
         isPreserveFileTimestamps = false
         isReproducibleFileOrder = true
 
         manifest {
             attributes["Implementation-Version"] = version
-            attributes["Implementation-Title"] = rootProject.name
+            attributes["Implementation-Title"] = project.name
             attributes["Implementation-Platform"] = attributes["Build-SDK"] ?: "unknown"
             // clear gradle-intellij-plugin keys
             attributes.keys.removeIf { it.startsWith("Build-") }
+            println("Manifest attributes: ${attributes["Implementation-Title"]}")
         }
     }
 
