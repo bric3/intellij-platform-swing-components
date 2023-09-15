@@ -4,6 +4,8 @@ annotations = "24.0.1"
 
 kotlin = "1.9.10"
 kotlin-coroutines = "1.6.4"
+junit-jupiter = "5.10.0"
+assertj = "3.24.2"
 
 # plugins
 changelog = "2.1.2"
@@ -16,11 +18,16 @@ qodana = "0.1.13"
 [libraries]
 annotations = { group = "org.jetbrains", name = "annotations", version.ref = "annotations" }
 
+junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit-jupiter" }
+junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit-jupiter" }
+assertj = { module = "org.assertj:assertj-core", version.ref = "assertj" }
+
 # For build
 detekt-formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }
 
 [bundles]
 detektplugins = ["detekt-formatting"]
+junit-jupiter = ["junit-jupiter-api", "junit-jupiter-engine"]
 
 [plugins]
 changelog = { id = "org.jetbrains.changelog", version.ref = "changelog" }

@@ -51,10 +51,6 @@ changelog {
 }
 
 tasks {
-    withType<Test> {
-        useJUnitPlatform()
-    }
-
     withType<KotlinCompile> {
         kotlinOptions {
             freeCompilerArgs = listOf(
@@ -106,6 +102,36 @@ tasks {
     ).forEach {
         it {
             enabled = false
+        }
+    }
+}
+
+testing {
+    suites {
+        val test by getting(JvmTestSuite::class) {
+            useJUnitJupiter(libs.versions.junit.jupiter.get())
+            dependencies {
+                implementation.add(libs.assertj)
+            }
+        }
+
+        withType(JvmTestSuite::class) {
+            targets.configureEach {
+                testTask.configure {
+                    systemProperty("gradle.test.suite.report.location", reports.html.outputLocation.get().asFile)
+
+                    testLogging {
+                        showStackTraces = true
+                        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+
+                        events = setOf(
+                            org.gradle.api.tasks.testing.logging.TestLogEvent.FAILED,
+                            org.gradle.api.tasks.testing.logging.TestLogEvent.STANDARD_ERROR,
+                            org.gradle.api.tasks.testing.logging.TestLogEvent.SKIPPED
+                        )
+                    }
+                }
+            }
         }
     }
 }
