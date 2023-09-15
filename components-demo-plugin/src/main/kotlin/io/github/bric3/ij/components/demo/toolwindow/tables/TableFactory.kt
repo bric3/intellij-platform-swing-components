@@ -29,6 +29,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.swing.JPanel
+import javax.swing.JTable
 import javax.swing.table.TableCellRenderer
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -36,7 +37,7 @@ import kotlin.time.Duration.Companion.seconds
 internal object TableFactory {
     private val cs = CoroutineScope(SupervisorJob())
 
-    fun <T> table(tableConstructor: (ListTableModel<T>) -> JBTable, model: ListTableModel<T>): JPanel {
+    fun <T> table(tableConstructor: (ListTableModel<T>) -> JBTable, model: ListTableModel<T>): Pair<JTable, JPanel> {
         return tableConstructor(model).run {
             TableSpeedSearch.installOn(this)
 
@@ -48,7 +49,7 @@ internal object TableFactory {
                 }
             }
 
-            ToolbarDecorator.createDecorator(this).also {
+            val decorated = ToolbarDecorator.createDecorator(this).also {
                 it.setToolbarPosition(ActionToolbarPosition.LEFT)
                 it.setPanelBorder(JBUI.Borders.customLineTop(JBColor.border()))
                 it.setScrollPaneBorder(JBUI.Borders.empty())
@@ -68,10 +69,19 @@ internal object TableFactory {
                     this.selectedRowCount > 0
                 }
             }.createPanel()
+            this to decorated
         }
     }
 
-    fun modelLoadingAsynchronously(dataset: Iterable<NumberMapping>): ListTableModel<NumberMapping> {
+    fun model(dataset: List<NumberMapping>): ListTableModel<NumberMapping> {
+        val model = ListTableModel<NumberMapping>(
+            arrayOf(NumberMappingColumnInfo("Numbers")),
+            dataset
+        )
+        return model
+    }
+
+    fun modelLoadingAsynchronously(dataset: List<NumberMapping>): ListTableModel<NumberMapping> {
         val model = ListTableModel<NumberMapping>(
             NumberMappingColumnInfo("Numbers")
         )

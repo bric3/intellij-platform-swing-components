@@ -17,37 +17,31 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.ui.content.ContentFactory
-import com.intellij.ui.tabs.impl.SingleHeightTabs
 import io.github.bric3.ij.components.demo.toolwindow.tables.ScalableTablesTab
 
 class DemoToolWindowFactory : ToolWindowFactory {
     override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
-        val demoToolWindow = DemoToolWindow(project, toolWindow)
-        val content = ContentFactory.getInstance().createContent(
-            demoToolWindow.getContent(),
-            "Swing Components",
-            false
-        )
-        toolWindow.contentManager.addContent(content)
+        println("createToolWindowContent")
+        contents(ContentFactory.getInstance()).forEach {
+            toolWindow.contentManager.addContent(it)
+        }
+
         toolWindow.setTitleActions(listOf(
             DumbAwareAction.create("Refresh", AllIcons.Actions.Refresh) {
                 toolWindow.contentManager.removeAllContents(true)
 
-                val newContent = ContentFactory.getInstance().createContent(
-                    demoToolWindow.getContent(),
-                    "Swing Components",
-                    false
-                )
-                toolWindow.contentManager.addContent(newContent)
+                contents(ContentFactory.getInstance()).forEach {
+                    toolWindow.contentManager.addContent(it)
+                }
             }
         ))
     }
 
     override fun shouldBeAvailable(project: Project) = true
 
-    class DemoToolWindow(private val project: Project, private val toolWindow: ToolWindow) {
-        fun getContent() = SingleHeightTabs(project, toolWindow.disposable).apply {
-            addTab(ScalableTablesTab.tabInfo)
-        }
+    private fun contents(contentFactory: ContentFactory) = listOf(
+        ScalableTablesTab.tabInfo,
+    ).map {
+        contentFactory.createContent(it.component, it.text, false)
     }
 }

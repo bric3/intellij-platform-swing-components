@@ -1,4 +1,4 @@
-<idea-plugin xmlns:xi="http://www.w3.org/2001/XInclude" require-restart="false">
+<idea-plugin require-restart="false">
     <id>io.github.bric3.ij-platform.swing-components.demo</id>
     <!--suppress PluginXmlValidity -->
     <!-- This plugin won;t go on the marketplace -->
@@ -6,7 +6,7 @@
     <vendor url="https://github.com/bric3">Brice Dutheil</vendor>
 
     <description><![CDATA[
-        Sets breakpoint in <code>CoroutinePostStartupActivityKt</code> this plugin in debug.
+        Demo Swing components for IntelliJ Platform plugins.
     ]]></description>
     <change-notes/>
 
@@ -15,10 +15,15 @@
     <depends>com.intellij.modules.platform</depends>
 
     <extensions defaultExtensionNs="com.intellij">
-        <toolWindow factoryClass="io.github.bric3.ij.components.demo.toolwindow.DemoToolWindowFactory" id="DemoToolWindow"/>
+        <toolWindow factoryClass="io.github.bric3.ij.components.demo.toolwindow.DemoToolWindowFactory"
+                    id="DemoToolWindow"
+                    icon="DemoPluginIcons.PluginIcon"
+        />
     </extensions>
 
     <applicationListeners>
-        <listener class="io.github.bric3.ij.components.demo.listener.DemoAppActivationListener" topic="com.intellij.openapi.application.ApplicationActivationListener"/>
+        <listener class="io.github.bric3.ij.components.demo.listener.DemoAppActivationListener"
+                  topic="com.intellij.openapi.application.ApplicationActivationListener"
+        />
     </applicationListeners>
 </idea-plugin>

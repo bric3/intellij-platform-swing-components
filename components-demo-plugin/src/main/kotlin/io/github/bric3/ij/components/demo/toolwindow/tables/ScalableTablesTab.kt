@@ -32,13 +32,13 @@ class ScalableTablesTab : BorderLayoutPanel() {
                 }
                 group(ScalableJBTable::class.simpleName!!, false) {
                     row {
-                        scrollCell(table(::ScalableJBTable, modelLoadingAsynchronously(englishToJapanese))).align(Align.FILL)
+                        cell(table(::ScalableJBTable, modelLoadingAsynchronously(englishToJapanese)).second).align(Align.FILL)
                             .comment("This table is a JBTable that scales correctly the custom renderer when to presentation mode")
                     }.resizableRow()
                 }.resizableRow()
                 group(ScalableTableView::class.simpleName!!, false) {
                     row {
-                        scrollCell(table(::ScalableTableView, modelLoadingAsynchronously(japaneseNumbers))).align(Align.FILL)
+                        cell(table(::ScalableTableView, modelLoadingAsynchronously(japaneseNumbers)).second).align(Align.FILL)
                             .comment("This table is a JBTable that scales correctly the custom renderer when to presentation mode")
                     }.resizableRow()
                 }.resizableRow()
