@@ -10,3 +10,5 @@ Some components have some rendering issues when the UI is scaled like in present
 * Patched `JBTable` and it's subtype `TableView` to respectively `ScalableJBTable` and `ScalableTableView`.
   See [IDEA-289745](https://youtrack.jetbrains.com/issue/IDEA-289745) for details.
 
+* `ColoredJProgressBar` which allows tweaking the colors of the progress bar.
+

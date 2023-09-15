@@ -9,13 +9,14 @@
  *
  * SPDX-License-Identifier: MPL-2.0
  */
+import org.jetbrains.dokka.gradle.DokkaTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 fun properties(key: String) = providers.gradleProperty(key)
 fun environment(key: String) = providers.environmentVariable(key)
 
 plugins {
-    id("java")
+    `java-library`
     alias(libs.plugins.kotlin)
     alias(libs.plugins.dokka)
     alias(libs.plugins.gradleIntelliJPlugin)
@@ -50,6 +51,7 @@ changelog {
     repositoryUrl = properties("pluginRepositoryUrl")
 }
 
+val baseName = "swing-components"
 tasks {
     withType<KotlinCompile> {
         kotlinOptions {
@@ -60,9 +62,14 @@ tasks {
         }
     }
 
+    withType<DokkaTask>().configureEach {
+        notCompatibleWithConfigurationCache("https://github.com/Kotlin/dokka/issues/2231")
+    }
+
     val javadocJar by registering(Jar::class) {
         // Note that we publish the Dokka HTML artifacts as Javadoc
         dependsOn(dokkaHtml)
+        archiveBaseName.set(baseName)
         archiveClassifier.set("javadoc")
         from(dokkaHtml)
     }
@@ -72,7 +79,7 @@ tasks {
     }
 
     val jar by getting(Jar::class) {
-        archiveBaseName.set("swing-components")
+        archiveBaseName.set(baseName)
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE
         isPreserveFileTimestamps = false
         isReproducibleFileOrder = true
