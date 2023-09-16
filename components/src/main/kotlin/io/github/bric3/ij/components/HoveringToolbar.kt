@@ -28,8 +28,9 @@ import javax.swing.OverlayLayout
 import javax.swing.SwingUtilities
 import javax.swing.event.MouseInputAdapter
 
+@Suppress("UnstableApiUsage")
 class HoveringToolbar private constructor(
-    private val container: JComponent,
+    private val container: JComponent, // TODO replace by getParent
     private val table: JTable,
     private val serviceHoveringToolbar: ActionToolbar
 ) : JBLayeredPane() {
@@ -47,6 +48,8 @@ class HoveringToolbar private constructor(
     }
 
     init {
+        layout = OverlayLayout(this)
+
         table.rowHeight = ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE.height + 4
         TableHoverListener.DEFAULT.addTo(table)
 
@@ -86,7 +89,7 @@ class HoveringToolbar private constructor(
      */
     override fun getComponents(): Array<Component> {
         val components = super.getComponents()
-        components.sortWith { c1: Component, _: Component? -> if (c1 === container) -1 else 1 }
+        components.sortWith { c1: Component, _: Component? -> if (c1 === container) -1 else 1 } // TODO replace container by getParent that is not the scroll pane/viewport
         return components
     }
 
@@ -146,11 +149,25 @@ class HoveringToolbar private constructor(
         }
     }
 
+    // private fun forceActionRefresh(me: MouseEvent) {
+    //     val context = ActionToolbar.getDataContextFor(serviceHoveringToolbar.targetComponent)
+    //     val event = AnActionEvent.createFromInputEvent(
+    //         me,
+    //         "hovering-toolbar",
+    //         serviceHoveringToolbar.actionGroup.templatePresentation,
+    //         context,
+    //         false,
+    //         true
+    //     )
+    //     if (ActionUtil.lastUpdateAndCheckDumb(action, event, false)) {
+    //         ActionUtil.performActionDumbAwareWithCallbacks(action, event)
+    //         ActionToolbar.findToolbarBy(this)?.updateActionsImmediately()
+    //     }
+    // }
+
     companion object {
-        fun install(container: JComponent, table: JTable, serviceHoveringToolbar: ActionToolbar): HoveringToolbar {
-            val hoveringToolbarJBTable = HoveringToolbar(container, table, serviceHoveringToolbar)
-            hoveringToolbarJBTable.layout = OverlayLayout(hoveringToolbarJBTable)
-            return hoveringToolbarJBTable
+        fun wrap(container: JComponent, table: JTable, serviceHoveringToolbar: ActionToolbar): HoveringToolbar {
+            return HoveringToolbar(container, table, serviceHoveringToolbar)
         }
     }
 }
