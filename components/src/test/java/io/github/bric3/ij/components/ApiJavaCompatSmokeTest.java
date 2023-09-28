@@ -11,8 +11,11 @@
  */
 package io.github.bric3.ij.components;
 
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import org.junit.Test;
 
+import javax.swing.*;
 import java.awt.*;
 
 public class ApiJavaCompatSmokeTest {
@@ -27,5 +30,33 @@ public class ApiJavaCompatSmokeTest {
         progressBar.getRemainderColor();
         progressBar.setRatio(0.4);
         progressBar.getRatio();
+    }
+
+    @Test
+    public void for_HoveringToolbar() {
+        var table = new JTable();
+        var scroller = new JScrollPane(table);
+        HoveringToolbar hoveringToolbar = HoveringToolbar.wrap(
+                scroller,
+                table,
+                ActionManager.getInstance().createActionToolbar("my loc", new DefaultActionGroup(), true)
+        );
+
+        hoveringToolbar.getTable();
+        hoveringToolbar.getToolbar();
+        hoveringToolbar.getContainer();
+
+        hoveringToolbar.setToolbarBackground(Color.red);
+        hoveringToolbar.getToolbarBackground();
+        hoveringToolbar.setToolbarOpaque(true);
+        hoveringToolbar.isToolbarOpaque();
+    }
+
+    @Test
+    public void for_VerticalExpandButton() {
+        var button = new VerticalExpandButton("Whatever", SwingConstants.LEFT, false);
+        button.bindComponentVisibility(new JPanel());
+        button.createCollapseAction(() -> "Hide Panel", () -> { /* when collapsed */ });
+        button.getExpanded().set(true);
     }
 }
