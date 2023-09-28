@@ -50,7 +50,7 @@ internal class CompositeTableCellRenderer(
         hasFocus: Boolean,
         row: Int,
         column: Int,
-    ): JComponent? {
+    ): JComponent {
         removeAll()
         center?.run { getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column) }?.let {
             addToCenter(it)
@@ -67,6 +67,10 @@ internal class CompositeTableCellRenderer(
         west?.run { getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column) }?.let {
             addToLeft(it)
         }
+        background = if (isSelected)
+            JBUI.CurrentTheme.Table.Selection.background(false)
+        else
+            null
         return this
     }
 }
@@ -119,6 +123,10 @@ class NumberMappingTextRenderer : TableCellRenderer {
             )
             if (isHiragana) append("」")
         }
+        simpleColoredComponent.background = if (isSelected)
+            JBUI.CurrentTheme.Table.Selection.background(false)
+        else
+            null
         return simpleColoredComponent
     }
 }
@@ -155,6 +163,11 @@ class NumberLogScaleRenderer : TableCellRenderer {
         val logarithmicPercentage = logarithmicPercentageOf(a)
         jProgressBar.value = logarithmicPercentage
         jProgressBar.finishedColor = colorIntensity(logarithmicPercentage)
+
+        jProgressBar.background = if (isSelected)
+            JBUI.CurrentTheme.Table.Selection.background(false)
+        else
+            null
 
         return jProgressBar
     }

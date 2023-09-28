@@ -26,7 +26,7 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.components.BorderLayoutPanel
 import io.github.bric3.ij.components.HoveringToolbar
 import io.github.bric3.ij.components.table.ScalableTableView
-import javax.swing.JComponent
+import javax.swing.ListSelectionModel
 
 class TableWithHoverToolbarTab : BorderLayoutPanel() {
     init {
@@ -68,6 +68,11 @@ class TableWithHoverToolbarTab : BorderLayoutPanel() {
                 NumberMappingTextRenderer()
             )
         )
+
+        table.apply {
+            rowSelectionAllowed = true
+            setSelectionMode(ListSelectionModel.SINGLE_SELECTION)
+        }
 
         return HoveringToolbar.wrap(
             decorator,
