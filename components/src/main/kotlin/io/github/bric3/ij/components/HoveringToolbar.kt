@@ -47,7 +47,7 @@ class HoveringToolbar private constructor(
     val table: JTable,
     val toolbar: ActionToolbar
 ) : JBLayeredPane() {
-    private val hoveringToolbarComponent: JComponent = toolbar.component.apply {
+    private val toolbarComponent: JComponent = toolbar.component.apply {
         isOpaque = true
         background = ColorUtil.toAlpha(JBColor.MAGENTA, 20)
         border = JBUI.Borders.empty()
@@ -57,7 +57,7 @@ class HoveringToolbar private constructor(
         isOpaque = false
         isVisible = false
         background = null
-        add(hoveringToolbarComponent)
+        add(toolbarComponent)
     }
     private var showToolbar = true
 
@@ -98,7 +98,7 @@ class HoveringToolbar private constructor(
         hoverLayer.isVisible = true
         toolbar.updateActionsImmediately() // has to happen after container is set to be visible
         // Adjust toolbar location, and background
-        hoveringToolbarComponent.apply {
+        toolbarComponent.apply {
             isOpaque = isToolbarOpaque
             background = toolbarBackground
 
@@ -116,10 +116,10 @@ class HoveringToolbar private constructor(
         hoverLayer.isVisible = false
         // clear previous location
         hoverLayer.repaint(
-            hoveringToolbarComponent.x,
-            hoveringToolbarComponent.y,
-            hoveringToolbarComponent.width,
-            hoveringToolbarComponent.height
+            toolbarComponent.x,
+            toolbarComponent.y,
+            toolbarComponent.width,
+            toolbarComponent.height
         )
     }
 
