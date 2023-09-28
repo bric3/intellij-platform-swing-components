@@ -14,8 +14,11 @@ package io.github.bric3.ij.components.demo.toolwindow.tables
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
+import com.intellij.openapi.actionSystem.ActionUpdateThread
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.project.DumbAwareAction
+import com.intellij.openapi.project.DumbAwareToggleAction
 import com.intellij.ui.dsl.builder.Align
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.ui.tabs.TabInfo
@@ -32,20 +35,32 @@ class TableWithHoverToolbarTab : BorderLayoutPanel() {
                 row {
                     comment("Try hovering the rows")
                 }
+                val tableWithHoveredToolbar = makeTableWithHoverToolbar(makeServiceHoverToolbar())
                 group(HoveringToolbar::class.simpleName!!, false) {
                     row {
-                        cell(
-                            makeTableWithHoverToolbar(makeServiceHoverToolbar())
-                        ).align(Align.FILL)
+                        cell(tableWithHoveredToolbar).align(Align.FILL)
                     }.resizableRow()
                 }.resizableRow()
+
+                row {
+                    actionButton(object : DumbAwareToggleAction("Enabled") {
+                        override fun isSelected(e: AnActionEvent) =
+                            tableWithHoveredToolbar.table.isEnabled
+
+                        override fun setSelected(e: AnActionEvent, state: Boolean) {
+                            tableWithHoveredToolbar.table.isEnabled = state
+                        }
+
+                        override fun getActionUpdateThread() = ActionUpdateThread.EDT
+                    })
+                }
 
                 border = JBUI.Borders.empty(5)
             }
         )
     }
 
-    private fun makeTableWithHoverToolbar(hoverToolbar: ActionToolbar): JComponent {
+    private fun makeTableWithHoverToolbar(hoverToolbar: ActionToolbar): HoveringToolbar {
         val (table, decorator) = TableFactory.table(
             ::ScalableTableView,
             TableFactory.model(

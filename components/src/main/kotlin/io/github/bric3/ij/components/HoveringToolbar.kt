@@ -24,6 +24,8 @@ import java.awt.Point
 import java.awt.Rectangle
 import java.awt.event.MouseWheelEvent
 import java.awt.event.MouseWheelListener
+import java.beans.PropertyChangeEvent
+import java.beans.PropertyChangeListener
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JTable
@@ -41,11 +43,11 @@ import javax.swing.event.ListSelectionListener
  */
 @Suppress("UnstableApiUsage")
 class HoveringToolbar private constructor(
-    private val container: JComponent, // TODO replace by getParent
-    private val table: JTable,
-    private val serviceHoveringToolbar: ActionToolbar
+    val container: JComponent, // TODO replace by getParent
+    val table: JTable,
+    val toolbar: ActionToolbar
 ) : JBLayeredPane() {
-    private val hoveringToolbarComponent: JComponent = serviceHoveringToolbar.component.apply {
+    private val hoveringToolbarComponent: JComponent = toolbar.component.apply {
         isOpaque = true
         background = ColorUtil.toAlpha(JBColor.MAGENTA, 20)
         border = JBUI.Borders.empty()
@@ -57,6 +59,7 @@ class HoveringToolbar private constructor(
         background = null
         add(hoveringToolbarComponent)
     }
+    private var showToolbar = true
 
     var isOpaqueToolbarWhenSelected: Boolean = false
     var isToolbarOpaque: Boolean = false
@@ -64,12 +67,14 @@ class HoveringToolbar private constructor(
 
     init {
         layout = OverlayLayout(this)
+        toolbar.targetComponent = table
 
         table.rowHeight = table.rowHeight.coerceAtLeast(ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE.height + 4)
         ToolbarTableHoverListener().also {
             it.addTo(table)
             ComponentUtil.getScrollPane(table)?.addMouseWheelListener(it)
             table.selectionModel.addListSelectionListener(it)
+            table.addPropertyChangeListener("enabled", it)
         }
 
         isOpaque = false
@@ -83,19 +88,15 @@ class HoveringToolbar private constructor(
     private fun showOrHideToolbar(table: JTable, rowOld: Int, rowNew: Int) {
         if (rowNew == rowOld) return
         if (rowNew != -1) {
-            hoverLayer.isVisible = false
-            // clear previous location
-            this@HoveringToolbar.repaint(
-                hoveringToolbarComponent.x,
-                hoveringToolbarComponent.y,
-                hoveringToolbarComponent.width,
-                hoveringToolbarComponent.height
-            )
+            hideToolbar()
         }
 
+        if (!showToolbar) {
+            return
+        }
 
         hoverLayer.isVisible = true
-        serviceHoveringToolbar.updateActionsImmediately() // has to happen after container is set to be visible
+        toolbar.updateActionsImmediately() // has to happen after container is set to be visible
         // Adjust toolbar location, and background
         hoveringToolbarComponent.apply {
             isOpaque = isToolbarOpaque
@@ -109,6 +110,17 @@ class HoveringToolbar private constructor(
             revalidate()
             repaint()
         }
+    }
+
+    private fun hideToolbar() {
+        hoverLayer.isVisible = false
+        // clear previous location
+        hoverLayer.repaint(
+            hoveringToolbarComponent.x,
+            hoveringToolbarComponent.y,
+            hoveringToolbarComponent.width,
+            hoveringToolbarComponent.height
+        )
     }
 
     private fun JComponent.updateBounds(table: JTable, row: Int) {
@@ -131,7 +143,12 @@ class HoveringToolbar private constructor(
         )
     }
 
-    private inner class ToolbarTableHoverListener : TableHoverListener(), MouseWheelListener, ListSelectionListener {
+    private inner class ToolbarTableHoverListener
+        : TableHoverListener(),
+        MouseWheelListener,
+        ListSelectionListener,
+        PropertyChangeListener {
+
         private val defaultTableHoverListener = DEFAULT as TableHoverListener
 
         override fun onHover(table: JTable, rowNew: Int, column: Int) {
@@ -149,6 +166,13 @@ class HoveringToolbar private constructor(
         }
 
         override fun valueChanged(e: ListSelectionEvent) {
+            val hoveredRow = getHoveredRow(table)
+            showOrHideToolbar(table, -1, hoveredRow)
+        }
+
+        override fun propertyChange(it: PropertyChangeEvent) {
+            if (it.propertyName != "enabled") return
+            showToolbar = it.newValue as Boolean
             val hoveredRow = getHoveredRow(table)
             showOrHideToolbar(table, -1, hoveredRow)
         }
