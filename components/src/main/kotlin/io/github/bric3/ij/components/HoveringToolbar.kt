@@ -61,7 +61,6 @@ class HoveringToolbar private constructor(
     }
     private var showToolbar = true
 
-    var isOpaqueToolbarWhenSelected: Boolean = false
     var isToolbarOpaque: Boolean = false
     var toolbarBackground: Color? = null
 
@@ -102,10 +101,6 @@ class HoveringToolbar private constructor(
             isOpaque = isToolbarOpaque
             background = toolbarBackground
 
-            if (isOpaqueToolbarWhenSelected) {
-                isOpaque = table.selectedRows.contains(rowNew)
-            }
-        
             updateBounds(table, rowNew)
             revalidate()
             repaint()
@@ -206,6 +201,7 @@ class HoveringToolbar private constructor(
     }
 
     companion object {
+        @JvmStatic
         fun wrap(container: JComponent, table: JTable, serviceHoveringToolbar: ActionToolbar): HoveringToolbar {
             return HoveringToolbar(container, table, serviceHoveringToolbar)
         }
