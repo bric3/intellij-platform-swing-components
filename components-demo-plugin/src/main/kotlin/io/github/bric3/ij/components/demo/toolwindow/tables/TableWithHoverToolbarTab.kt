@@ -72,7 +72,7 @@ class TableWithHoverToolbarTab : BorderLayoutPanel() {
             )
         }
         val actionGroup = DefaultActionGroup(
-            DumbAwareAction.create("Start", AllIcons.Actions.Play_back) { },
+            DumbAwareAction.create("Start", AllIcons.Actions.Play_forward) { },
             DumbAwareAction.create("Pause", AllIcons.Actions.Pause) { },
             moreActionGroup
         )

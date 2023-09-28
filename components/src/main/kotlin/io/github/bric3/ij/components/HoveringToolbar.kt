@@ -28,6 +28,13 @@ import javax.swing.OverlayLayout
 import javax.swing.SwingUtilities
 import javax.swing.event.MouseInputAdapter
 
+/**
+ * Wraps a [JTable] and a [ActionToolbar] to display the toolbar when hovering a specific row.
+ *
+ * Relies on [TableHoverListener] to discover the hovered table.
+ *
+ * @see TableHoverListener
+ */
 @Suppress("UnstableApiUsage")
 class HoveringToolbar private constructor(
     private val container: JComponent, // TODO replace by getParent
@@ -35,15 +42,15 @@ class HoveringToolbar private constructor(
     private val serviceHoveringToolbar: ActionToolbar
 ) : JBLayeredPane() {
     private val hoveringToolbarComponent: JComponent = serviceHoveringToolbar.component.apply {
-        isOpaque = false
-        background = JBUI.CurrentTheme.Table.BACKGROUND
+        isOpaque = true
+        background = Gray.get(128, 128)
         border = JBUI.Borders.empty()
     }
     private val hoveringPanel: JPanel = JPanel().apply {
         layout = null
         isOpaque = false
         isVisible = false
-        background = Gray.TRANSPARENT
+        background = null
         add(hoveringToolbarComponent)
     }
 
@@ -95,36 +102,37 @@ class HoveringToolbar private constructor(
 
     private inner class HoveringToolbarMouseListener : MouseInputAdapter() {
         override fun mouseWheelMoved(e: MouseWheelEvent) {
-            updateHover()
+            updateHover(e)
         }
 
         override fun mouseEntered(e: MouseEvent) {
-            updateHover()
+            updateHover(e)
         }
 
         override fun mouseExited(e: MouseEvent) {
-            updateHover()
+            updateHover(e)
         }
 
         override fun mouseMoved(e: MouseEvent) {
-            updateHover()
+            updateHover(e)
         }
 
         override fun mouseClicked(e: MouseEvent) {
-            updateHover()
+            updateHover(e)
         }
 
         override fun mousePressed(e: MouseEvent) {
-            updateHover()
+            updateHover(e)
         }
 
-        private fun updateHover() {
+        private fun updateHover(e: MouseEvent) {
             val hoveredRow = TableHoverListener.getHoveredRow(table)
             if (hoveredRow == -1) {
                 hoveringPanel.isVisible = false
                 return
             }
             val firstCellRect = (if (hoveredRow < 0) null else table.getCellRect(hoveredRow, 0, false)) ?: return
+            serviceHoveringToolbar.updateActionsImmediately() // has to happen after container is set to be visible
             hoveringToolbarComponent.apply {
                 isOpaque = table.selectedRows.contains(hoveredRow)
                 preferredSize = preferredSize.apply {
@@ -144,8 +152,11 @@ class HoveringToolbar private constructor(
                 revalidate()
                 repaint()
             }
-            hoveringPanel.isVisible = true
-            serviceHoveringToolbar.updateActionsImmediately() // has to happen after container is set to be visible
+            hoveringPanel.run {
+                isVisible = true
+                // revalidate()
+                // repaint()
+            }
         }
     }
 
