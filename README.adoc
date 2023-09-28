@@ -46,6 +46,10 @@ image::.github/images/ColoredProgressBar.png[ColoredProgressBar]
 +
 image::.github/images/HoveringToolbar.gif[HoveringToolbar]
 
+* `SvgIcon` allows using SVG icons, it is based on the `SvgIcon` from JSVG
++
+image::.github/images/SvgIcon.png[SvgIcon]
+
 == Tests
 
 I don't exactly know how to test Swing components at this time,

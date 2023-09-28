@@ -12,7 +12,7 @@
 fun properties(key: String) = providers.gradleProperty(key)
 
 plugins {
-    id("java")
+    java
     alias(libs.plugins.kotlin)
     alias(libs.plugins.gradleIntelliJPlugin)
 }
@@ -60,6 +60,7 @@ tasks {
         runPluginVerifier,
         verifyPlugin,
         instrumentCode,
+        buildSearchableOptions,
         assemble,
     ).forEach {
         it {

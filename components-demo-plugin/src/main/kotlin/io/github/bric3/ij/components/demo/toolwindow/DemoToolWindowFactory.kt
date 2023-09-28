@@ -17,6 +17,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.ui.content.ContentFactory
+import io.github.bric3.ij.components.demo.toolwindow.misc.MiscTab
 import io.github.bric3.ij.components.demo.toolwindow.tables.ScalableTablesTab
 import io.github.bric3.ij.components.demo.toolwindow.tables.TableWithHoverToolbarTab
 
@@ -43,6 +44,7 @@ class DemoToolWindowFactory : ToolWindowFactory {
     private fun contents(contentFactory: ContentFactory) = listOf(
         ScalableTablesTab.tabInfo,
         TableWithHoverToolbarTab.tabInfo,
+        MiscTab.tabInfo,
     ).map {
         contentFactory.createContent(it.component, it.text, false)
     }

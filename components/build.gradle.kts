@@ -32,6 +32,7 @@ repositories {
 
 dependencies {
     compileOnly(libs.annotations)
+    api(libs.jsvg)
 }
 
 kotlin {
