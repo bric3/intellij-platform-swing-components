@@ -20,9 +20,9 @@ Or the shipped run configuration _demo-plugin [runIde]_ for IntelliJ IDEA.
 
 == Components
 
-* `ScaledJBTable` ans `ScaledTableView` fix an issue regarding the row height
+* `ScaledJBTable` and `ScaledTableView` fix an issue regarding the row height
 when using custom renderer and switching back and forth between presentation mode.
-+ Compare without fix and with the fix:
++ Compare without and with the fix:
 +
 .Presentation mode *before* fix
 image::.github/images/ScalableJTable-presentation-mode-nofix.png[Without fix]
@@ -41,6 +41,10 @@ image::.github/images/ScalableJTable-zoom-150-withfix.png[Without fix]
 the `JProgressBar` with the regular DarculaUI does not allow that.
 +
 image::.github/images/ColoredProgressBar.png[ColoredProgressBar]
+
+* `HoveringToolbar` allows showing a toolbar when hovering a table row.
++
+image::.github/images/HoveringToolbar.gif[HoveringToolbar]
 
 == Tests
 
