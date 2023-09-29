@@ -46,7 +46,10 @@ spotless {
     kotlin {
         licenseHeaderFile(project.file("$rootDir/.spotless/java.HEADER"))
         target("**/*.kt", "**/*.kts")
-        targetExclude("**/*.gradle.kts")
+        targetExclude(
+            "**/*.gradle.kts",
+            "**/SvgIcon.kt",
+        )
     }
     kotlinGradle {
         licenseHeaderFile(project.file("$rootDir/.spotless/java.HEADER"),
