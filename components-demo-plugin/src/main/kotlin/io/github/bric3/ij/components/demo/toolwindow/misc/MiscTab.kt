@@ -55,10 +55,13 @@ class MiscTab : BorderLayoutPanel() {
                             ),
                             true
                         )
+
                         expandableComponent = BorderLayoutPanel()
                             .addToTop(expandableToolbar.component)
                             .addToCenter(JLabel("Side Content"))
                             .withBorder(JBUI.Borders.empty(3))
+                        expandableToolbar.targetComponent = expandableComponent
+
                         mainComponent = BorderLayoutPanel()
                             .addToCenter(JLabel("Main Content"))
                             .withBorder(JBUI.Borders.empty(3))

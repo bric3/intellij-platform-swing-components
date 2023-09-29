@@ -44,13 +44,17 @@ import javax.swing.SwingConstants
 import javax.swing.SwingUtilities
 import javax.swing.UIManager
 import javax.swing.plaf.basic.BasicButtonUI
+import javax.swing.plaf.basic.BasicGraphicsUtils
 
 /**
  * Creates a vertical button that can be used to expand (as in toggle) a component.
  *
  * The component is heavily inspired by IntelliJ's
  * [`git4idea.ui.branch.dashboard.ExpandStripeButton`](https://github.com/JetBrains/intellij-community/blob/70a4451b8d46f24b090b04fa8b0611c49f5b23b0/plugins/git4idea/src/git4idea/ui/branch/dashboard/ExpandStripeButton.kt).
- * The UI in particular is from IJ, but this component has an improved API.
+ * The UI in particular is from IJ, but this component has an improved API,
+ * in particular,
+ * * this button can be placed either on the left or on the right,
+ * * this component reacts to [isExpandedProperty], and propagates any changes as well.
  * 
  * @see ExpandableSplitter
  */
@@ -67,18 +71,29 @@ class VerticalExpandButton @JvmOverloads constructor(
     var isExpanded: Boolean
         set(value) = isExpandedProperty.set(value)
         get() = isExpandedProperty.get()
-    private val actionIcon: Icon
+    private lateinit var actionIcon: Icon
 
     init {
         isRolloverEnabled = true
+
+        applySide(side)
+
+        bindVisible(isExpandedProperty.not())
+
+        addActionListener {
+            isExpandedProperty.set(true)
+        }
+    }
+
+    private fun applySide(side: Int) {
         when (side) {
-            SwingConstants.LEFT -> {
+            LEFT -> {
                 border = IdeBorderFactory.createBorder(JBColor.border(), SideBorder.RIGHT)
                 icon = AllIcons.Actions.ArrowExpand
                 actionIcon = AllIcons.Actions.ArrowCollapse
             }
 
-            SwingConstants.RIGHT -> {
+            RIGHT -> {
                 border = IdeBorderFactory.createBorder(JBColor.border(), SideBorder.LEFT)
                 icon = AllIcons.Actions.ArrowCollapse
                 actionIcon = AllIcons.Actions.ArrowExpand
@@ -88,17 +103,10 @@ class VerticalExpandButton @JvmOverloads constructor(
                 throw IllegalArgumentException("Invalid side value, use either SwingConstants.LEFT or SwingConstants.RIGHT")
             }
         }
-
-        bindVisible(isExpandedProperty.not())
-
-        addActionListener {
-            isExpandedProperty.set(true)
-        }
     }
 
     override fun updateUI() {
-        setUI(VerticalButtonUI())
-
+        setUI(VerticalExpandButtonUI())
         isOpaque = false
         font = UIUtil.getLabelFont(UIUtil.FontSize.SMALL)
     }
@@ -121,7 +129,7 @@ class VerticalExpandButton @JvmOverloads constructor(
     }
 
     // Copyright 2000-2021 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license.
-    private class VerticalButtonUI : BasicButtonUI() {
+    private class VerticalExpandButtonUI : BasicButtonUI() {
         private val iconRect = Rectangle()
         private val textRect = Rectangle()
         private val viewRect = Rectangle()
@@ -140,59 +148,60 @@ class VerticalExpandButton @JvmOverloads constructor(
                 return
             }
 
+            val fm = button.getFontMetrics(button.font)
             viewInsets = button.getInsets(viewInsets)
-
             viewRect.x = viewInsets.left
             viewRect.y = viewInsets.top
+
+            // Use inverted height & width
             viewRect.height = button.width - (viewInsets.left + viewInsets.right)
             viewRect.width = button.height - (viewInsets.top + viewInsets.bottom)
 
             iconRect.height = 0
-            iconRect.width = 0
-            iconRect.y = 0
-            iconRect.x = 0
+            iconRect.width = iconRect.height
+            iconRect.y = iconRect.width
+            iconRect.x = iconRect.y
 
             textRect.height = 0
-            textRect.width = 0
-            textRect.y = 0
-            textRect.x = 0
+            textRect.width = textRect.height
+            textRect.y = textRect.width
+            textRect.x = textRect.y
 
-            val fm = button.getFontMetrics(button.font)
 
             val clippedText = SwingUtilities.layoutCompoundLabel(
-                c,
-                fm,
-                text,
-                icon,
-                SwingConstants.CENTER,
-                if (button.side == SwingConstants.LEFT) SwingConstants.RIGHT else SwingConstants.LEFT,
-                SwingConstants.CENTER,
-                SwingConstants.TRAILING,
-                viewRect,
-                iconRect,
-                textRect,
-                if (text == null) 0 else button.iconTextGap
+                /* c = */ c,
+                /* fm = */ fm,
+                /* text = */ text,
+                /* icon = */ icon,
+                /* verticalAlignment = */ SwingConstants.CENTER,
+                /* horizontalAlignment = */ if (button.side == SwingConstants.LEFT) SwingConstants.RIGHT else SwingConstants.LEFT,
+                /* verticalTextPosition = */ SwingConstants.CENTER,
+                /* horizontalTextPosition = */ SwingConstants.TRAILING,
+                /* viewR = */ viewRect, /* iconR = */ iconRect, /* textR = */ textRect,
+                /* textIconGap = */ if (text == null) 0 else button.iconTextGap
             )
 
+            // Paint button's background
             val g2 = g.create() as Graphics2D
             try {
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
                 g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY)
 
-                iconRect.x = JBUIScale.scale(2 * button.iconTextGap)
+                val model = button.model
+                iconRect.x = JBUIScale.scale(2)
                 textRect.x -= JBUIScale.scale(2)
 
-                val model = button.model
                 g2.color = if (model.isRollover || model.isPressed) HOVER_BACKGROUND_COLOR else button.background
                 g2.fillRect(0, 0, button.width, button.height)
 
-                icon?.paintIcon(button, g2, iconRect.y, iconRect.x)
+                icon?.paintIcon(button, g2, iconRect.y, JBUIScale.scale(2 * button.iconTextGap))
 
+                // paint text
                 text?.let {
                     if (button.side == SwingConstants.LEFT) {
                         g2.rotate(-Math.PI / 2)
                         g2.translate(
-                            -button.height - iconRect.height - iconRect.x - JBUIScale.scale(button.iconTextGap),
+                            -button.height - 2 * iconRect.width,
                             0
                         )
                     } else {
@@ -201,8 +210,18 @@ class VerticalExpandButton @JvmOverloads constructor(
                     }
 
                     UISettings.setupAntialiasing(g2)
-                    g2.color = (if (model.isEnabled) button.foreground else UIManager.getColor("Button.disabledText"))
-                    g2.drawString(clippedText, textRect.x, textRect.y + fm.ascent)
+                    g2.color = if (model.isEnabled)
+                        button.foreground
+                    else
+                        UIManager.getColor("Button.disabledText")
+
+                    BasicGraphicsUtils.drawString(
+                        g2,
+                        clippedText,
+                        0,
+                        textRect.x,
+                        textRect.y + fm.ascent
+                    )
                 }
             } finally {
                 g2.dispose()
