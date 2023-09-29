@@ -13,6 +13,8 @@ package io.github.bric3.ij.components;
 
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.observable.properties.AtomicBooleanProperty;
+import com.intellij.util.ui.components.BorderLayoutPanel;
 import org.junit.Test;
 
 import javax.swing.*;
@@ -54,9 +56,41 @@ public class ApiJavaCompatSmokeTest {
 
     @Test
     public void for_VerticalExpandButton() {
-        var button = new VerticalExpandButton("Whatever", SwingConstants.LEFT, false);
-        button.bindComponentVisibility(new JPanel());
+        var button = new VerticalExpandButton(
+                "Whatever",
+                SwingConstants.LEFT,
+                new AtomicBooleanProperty(true)
+        );
+        // button.bindComponentVisibility(new JPanel());
         button.createCollapseAction(() -> "Hide Panel", () -> { /* when collapsed */ });
-        button.getExpanded().set(true);
+        button.setExpanded(false);
+        button.isExpanded();
+    }
+
+    @Test
+    public void for_ExpandableSplitterPanel() {
+        var panel = new ExpandableSplitter(
+                "Title",
+                SwingConstants.LEFT,
+                0.4f,
+                c -> {
+                    var collapseAction = c.getCollapseAction();
+                    var expandableToolbar = ActionManager.getInstance().createActionToolbar(
+                            "expandable",
+                            new DefaultActionGroup(collapseAction),
+                            true
+                    );
+                    c.setExpandableComponent(new BorderLayoutPanel().addToTop(expandableToolbar.getComponent()));
+                    c.getExpandableComponent();
+                    c.setMainComponent(new JPanel());
+                    c.getMainComponent();
+                }
+        );
+        panel.setExpanded(false);
+        panel.isExpanded();
+        panel.setMainComponent(new JPanel());
+        panel.getMainComponent();
+        panel.setExpandableComponent(new JPanel());
+        panel.getExpandableComponent();
     }
 }

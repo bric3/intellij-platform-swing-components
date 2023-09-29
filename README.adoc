@@ -50,6 +50,10 @@ image::.github/images/HoveringToolbar.gif[HoveringToolbar]
 +
 image::.github/images/SvgIcon.png[SvgIcon]
 
+* `ExpandableSplitter` allows to expand/collapse a component in a similar way as the Git Toolwindow to show branches.
++
+image::.github/images/ExpandableSplitter.gif[ExpandableSplitter]
+
 == Tests
 
 I don't exactly know how to test Swing components at this time,
