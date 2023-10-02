@@ -54,8 +54,9 @@ import javax.swing.plaf.basic.BasicGraphicsUtils
  * The UI in particular is from IJ, but this component has an improved API,
  * in particular,
  * * this button can be placed either on the left or on the right,
- * * this component reacts to [isExpandedProperty], and propagates any changes as well.
- * 
+ * * this component reacts to [isExpandedProperty], and propagates any changes as well,
+ * * and it provides the collapse action, in order to be placed in a toolbar.
+ *
  * @see ExpandableSplitter
  */
 class VerticalExpandButton @JvmOverloads constructor(

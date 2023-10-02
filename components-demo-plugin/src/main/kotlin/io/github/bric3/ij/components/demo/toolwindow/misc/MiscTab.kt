@@ -13,7 +13,6 @@ package io.github.bric3.ij.components.demo.toolwindow.misc
 
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.ui.dsl.builder.Align
@@ -46,18 +45,17 @@ class MiscTab : BorderLayoutPanel() {
                         "ExpandableSplitter",
                         SwingConstants.LEFT,
                     ) {
-                        val collapseAction: AnAction = getCollapseAction()
                         val expandableToolbar = ActionManager.getInstance().createActionToolbar(
                             "expandable",
                             DefaultActionGroup(
-                                collapseAction,
+                                getCollapseAction(),
                                 DumbAwareAction.create(AllIcons.General.Gear) { }
                             ),
-                            true
+                            false
                         )
 
                         expandableComponent = BorderLayoutPanel()
-                            .addToTop(expandableToolbar.component)
+                            .addToLeft(expandableToolbar.component)
                             .addToCenter(JLabel("Side Content"))
                             .withBorder(JBUI.Borders.empty(3))
                         expandableToolbar.targetComponent = expandableComponent

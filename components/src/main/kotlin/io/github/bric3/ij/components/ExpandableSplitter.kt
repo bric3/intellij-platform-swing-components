@@ -28,6 +28,32 @@ import javax.swing.SwingConstants.RIGHT
 /**
  * Creates a split panel where one side can be expanded or collapsed.
  *
+ * The [expandableComponent] has the opportunity to get the collapse action
+ * to be placed in a toolbar, the best location being a vertical toolbar on
+ * the LEFT or RIGHT side.
+ *
+ * Example:
+ * ```kotlin
+ * ExpandableSplitter(
+ *     "ExpandableSplitter",
+ *     SwingConstants.LEFT,
+ * ) {
+ *     val expandableToolbar = ActionManager.getInstance().createActionToolbar(
+ *         "my.expandable",
+ *         DefaultActionGroup(
+ *             getCollapseAction(),
+ *             ...
+ *         ),
+ *         false
+ *     )
+ *     expandableComponent = BorderLayoutPanel()
+ *         .addToLeft(expandableToolbar.component)
+ *         .addToCenter(/* Expandable JComponent */)
+ *     expandableToolbar.targetComponent = expandableComponent
+ *     mainComponent = /* Main JComponent */
+ * }
+ * ```
+ *
  * @param expandableText the text to display on the expandable button
  * @param expandableSide the side on which the expandable component is displayed
  * @param initialRatio the initial ratio of the splitter
