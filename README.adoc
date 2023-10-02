@@ -1,5 +1,9 @@
 = IntelliJ Platform Swing Components
 
+[link=https://github.com/bric3/intellij-platform-swing-components/actions/workflows/build.yaml]
+image::https://github.com/bric3/intellij-platform-swing-components/actions/workflows/build.yaml/badge.svg[Build Workflow]
+
+
 The goal of this project is to build a library of UI components
 for the IntelliJ Platform, since IntelliJ is based on Swing, these
 components are pure Swing but may use IntelliJ specific APIs.
