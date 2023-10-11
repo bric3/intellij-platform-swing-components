@@ -15,14 +15,17 @@ import com.intellij.icons.AllIcons
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindow
+import com.intellij.openapi.wm.ToolWindowAnchor
 import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.ui.content.ContentFactory
 import io.github.bric3.ij.components.demo.toolwindow.misc.MiscTab
+import io.github.bric3.ij.components.demo.toolwindow.misc.PlaygroundTab
 import io.github.bric3.ij.components.demo.toolwindow.tables.ScalableTablesTab
 import io.github.bric3.ij.components.demo.toolwindow.tables.TableWithHoverToolbarTab
 
 class DemoToolWindowFactory : ToolWindowFactory {
     override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
+        toolWindow.setAnchor(ToolWindowAnchor.RIGHT, null)
         println("createToolWindowContent")
         contents(ContentFactory.getInstance()).forEach {
             toolWindow.contentManager.addContent(it)
