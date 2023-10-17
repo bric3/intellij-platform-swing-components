@@ -50,11 +50,12 @@ image::.github/images/ColoredProgressBar.png[ColoredProgressBar]
 +
 image::.github/images/HoveringToolbar.gif[HoveringToolbar]
 
-* `SvgIcon` allows using SVG icons, it is based on the `SvgIcon` from JSVG
+* `SvgIcon` allows using SVG icons, it is based on the `SvgDocument` from https://github.com/weisJ/jsvg[JSVG]
 +
 image::.github/images/SvgIcon.png[SvgIcon]
 
-* `ExpandableSplitter` allows to expand/collapse a component in a similar way as the Git Toolwindow to show branches.
+* `ExpandableSplitter` allows expanding/collapsing a component in a similar way as the IntelliJ's
+Git Toolwindow to show branches.
 +
 image::.github/images/ExpandableSplitter.gif[ExpandableSplitter]
 
@@ -66,14 +67,14 @@ needs help.
 
 == License
 
-This work is licensed under *Mozilla Public License 2.0*, basically
-this license allows commercial use and distribution under a proprietary
-license, but it is required:
+This work is licensed under *Mozilla Public License 2.0* unless mentioned otherwise
+in specific classes or packages. Basically MPL 2 allows commercial use and
+distribution under a proprietary license, but it is required:
 
 . to mention the origin and the associated license somewhere.
 . to disclose any modifications under the same license.
 
-For more details it is encouraged to read the https://www.mozilla.org/en-US/MPL/2.0/[license itself].
+For more details, it is encouraged to read the https://www.mozilla.org/en-US/MPL/2.0/[license itself].
 
 > IntelliJ Platform Swing Components
 >

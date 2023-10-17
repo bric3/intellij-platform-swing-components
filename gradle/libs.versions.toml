@@ -1,7 +1,7 @@
 [versions]
 # libraries
 annotations = "24.0.1"
-jsvg = "1.1.0"
+jsvg = "1.2.0"
 
 kotlin = "1.9.10"
 kotlin-coroutines = "1.6.4"
@@ -9,11 +9,11 @@ junit-jupiter = "5.10.0"
 assertj = "3.24.2"
 
 # plugins
-changelog = "2.1.2"
+changelog = "2.2.0"
 detekt = "1.23.1"
-dokka = "1.9.0"
+dokka = "1.9.10"
 gradleIntelliJPlugin = "1.16.0"
-spotless = "6.21.0"
+spotless = "6.22.0"
 qodana = "0.1.13"
 
 [libraries]
