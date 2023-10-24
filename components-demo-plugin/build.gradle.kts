@@ -24,6 +24,7 @@ repositories {
 dependencies {
     implementation(libs.annotations)
     implementation(project(":components"))
+    implementation(libs.classgraph)
 }
 
 kotlin {

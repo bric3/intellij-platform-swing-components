@@ -16,6 +16,7 @@ import com.intellij.ui.dsl.builder.panel
 import com.intellij.ui.tabs.TabInfo
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.components.BorderLayoutPanel
+import io.github.bric3.ij.components.demo.toolwindow.DemoToolWindowFactory
 import io.github.bric3.ij.components.demo.toolwindow.tables.SomeData.englishToJapanese
 import io.github.bric3.ij.components.demo.toolwindow.tables.SomeData.japaneseNumbers
 import io.github.bric3.ij.components.demo.toolwindow.tables.TableFactory.modelLoadingAsynchronously
@@ -23,6 +24,7 @@ import io.github.bric3.ij.components.demo.toolwindow.tables.TableFactory.numberS
 import io.github.bric3.ij.components.demo.toolwindow.tables.TableFactory.table
 import io.github.bric3.ij.components.table.ScalableJBTable
 import io.github.bric3.ij.components.table.ScalableTableView
+import javax.annotation.Priority
 
 class ScalableTablesTab : BorderLayoutPanel() {
     init {
@@ -57,10 +59,10 @@ class ScalableTablesTab : BorderLayoutPanel() {
         )
     }
 
-    companion object {
-        val tabInfo
-            get() = TabInfo(ScalableTablesTab()).apply {
-                setText("Scalable Tables")
-            }
+    @Priority(1)
+    class Factory : DemoToolWindowFactory.TabFactory {
+        override fun createTab() = TabInfo(ScalableTablesTab()).apply {
+            setText("Scalable Tables")
+        }
     }
 }

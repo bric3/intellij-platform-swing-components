@@ -18,15 +18,14 @@ import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowAnchor
 import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.ui.content.ContentFactory
-import io.github.bric3.ij.components.demo.toolwindow.misc.MiscTab
-import io.github.bric3.ij.components.demo.toolwindow.misc.PlaygroundTab
-import io.github.bric3.ij.components.demo.toolwindow.tables.ScalableTablesTab
-import io.github.bric3.ij.components.demo.toolwindow.tables.TableWithHoverToolbarTab
+import com.intellij.ui.tabs.TabInfo
+import io.github.classgraph.ClassGraph
+import javax.annotation.Priority
 
-class DemoToolWindowFactory : ToolWindowFactory {
+
+internal class DemoToolWindowFactory : ToolWindowFactory {
     override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
         toolWindow.setAnchor(ToolWindowAnchor.RIGHT, null)
-        println("createToolWindowContent")
         contents(ContentFactory.getInstance()).forEach {
             toolWindow.contentManager.addContent(it)
         }
@@ -44,11 +43,27 @@ class DemoToolWindowFactory : ToolWindowFactory {
 
     override fun shouldBeAvailable(project: Project) = true
 
-    private fun contents(contentFactory: ContentFactory) = listOf(
-        ScalableTablesTab.tabInfo,
-        TableWithHoverToolbarTab.tabInfo,
-        MiscTab.tabInfo,
-    ).map {
+    private fun contents(contentFactory: ContentFactory) = contentClasses().map {
         contentFactory.createContent(it.component, it.text, false)
+    }
+
+    private fun contentClasses(): List<TabInfo> {
+        return ClassGraph()
+            .enableAllInfo()
+            .acceptPackages(javaClass.packageName)
+            .scan()
+            .use { scanResult ->
+                scanResult.getClassesImplementing(TabFactory::class.java.name)
+                    .asSequence()
+                    .map { it.loadClass(TabFactory::class.java) }
+                    .sortedBy { it.getAnnotation(Priority::class.java)?.value ?: 1000 }
+                    .map { it.getDeclaredConstructor().newInstance() }
+                    .map { it.createTab() }
+                    .toList()
+            }
+    }
+
+    interface TabFactory {
+        fun createTab(): TabInfo
     }
 }

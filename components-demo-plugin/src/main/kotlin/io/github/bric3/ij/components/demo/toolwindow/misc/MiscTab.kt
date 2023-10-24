@@ -33,9 +33,11 @@ import com.intellij.util.ui.components.BorderLayoutPanel
 import io.github.bric3.ij.components.ExpandableSplitter
 import io.github.bric3.ij.components.combo.ComboBoxWithCustomPopup
 import io.github.bric3.ij.components.combo.ComboBoxWithCustomPopup.Companion.makeComboBoxList
+import io.github.bric3.ij.components.demo.toolwindow.DemoToolWindowFactory
 import io.github.bric3.ij.components.icon.SvgIcon
 import java.awt.Dimension
 import java.io.InputStream
+import javax.annotation.Priority
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JList
@@ -204,10 +206,10 @@ class MiscTab : BorderLayoutPanel() {
 
     private fun classpath(s: String): InputStream = MiscTab::class.java.getResourceAsStream(s)
 
-    companion object {
-        val tabInfo
-            get() = TabInfo(MiscTab()).apply {
-                setText("Miscellaneous")
-            }
+    @Priority(3)
+    class Factory : DemoToolWindowFactory.TabFactory {
+        override fun createTab() = TabInfo(MiscTab()).apply {
+            setText("Miscellaneous")
+        }
     }
 }
