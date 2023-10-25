@@ -14,15 +14,22 @@ package io.github.bric3.ij.components.demo.toolwindow.misc
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionToolbar
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
 import com.intellij.openapi.observable.properties.AtomicLazyProperty
 import com.intellij.openapi.observable.util.bindVisible
 import com.intellij.openapi.project.DumbAwareAction
+import com.intellij.openapi.project.DumbAwareToggleAction
 import com.intellij.openapi.ui.popup.util.PopupUtil
 import com.intellij.ui.CollectionComboBoxModel
 import com.intellij.ui.dsl.builder.Align
+import com.intellij.ui.dsl.builder.AlignX
+import com.intellij.ui.dsl.builder.Cell
 import com.intellij.ui.dsl.builder.Panel
-import com.intellij.ui.dsl.builder.bindSelected
+import com.intellij.ui.dsl.builder.Row
 import com.intellij.ui.dsl.builder.bindText
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.ui.hover.ListHoverListener
@@ -55,7 +62,7 @@ class MiscTab : BorderLayoutPanel() {
     }
 
     private fun Panel.customPopupComboBox() {
-        group("Custom combobox popup") {
+        group("Custom Combobox Popup") {
             row {
                 val values = mapOf(
                     "a" to "details about a",
@@ -69,7 +76,7 @@ class MiscTab : BorderLayoutPanel() {
                             return MyPopupCreationContext(this, values)
                         }
                     }
-                )
+                ).align(AlignX.CENTER)
             }
         }
     }
@@ -107,7 +114,13 @@ class MiscTab : BorderLayoutPanel() {
                     .addToCenter(list)
                     .addToBottom(panel {
                         row {
-                            checkBox("Show details").bindSelected(detailsVisibility)
+                            actionButtonWithText(object : DumbAwareToggleAction("Show details") {
+                                override fun isSelected(e: AnActionEvent) = detailsVisibility.get()
+                                override fun setSelected(e: AnActionEvent, state: Boolean) =
+                                    detailsVisibility.set(state)
+                            })
+
+                            // checkBox("Show details").bindSelected(detailsVisibility)
                         }
                     })
                 )
@@ -124,6 +137,15 @@ class MiscTab : BorderLayoutPanel() {
                         Dimension(list.width, this.height)
                 }
             }
+        }
+        
+        private fun Row.actionButtonWithText(action: AnAction) : Cell<ActionButtonWithText> {
+            return cell(ActionButtonWithText(
+                action,
+                action.templatePresentation.clone(),
+                "dsl",
+                ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE
+            ))
         }
     }
 
