@@ -21,7 +21,6 @@ plugins {
     alias(libs.plugins.dokka)
     alias(libs.plugins.gradleIntelliJPlugin)
     alias(libs.plugins.changelog)
-    alias(libs.plugins.qodana)
 }
 
 group = "io.github.bric3.intellij-platform"
