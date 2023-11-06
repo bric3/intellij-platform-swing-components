@@ -54,6 +54,9 @@ import javax.swing.SwingConstants.RIGHT
  * }
  * ```
  *
+ * Current limitation the splitter only supports horizontal orientation,
+ * that is the [expandableSide] can only be on either the [right][RIGHT] or [left][LEFT].
+ *
  * @param expandableText the text to display on the expandable button
  * @param expandableSide the side on which the expandable component is displayed
  * @param initialRatio the initial ratio of the splitter
@@ -74,6 +77,7 @@ class ExpandableSplitter(
         expandableSide,
         isExpandedProperty,
     )
+    // possible alternative use a Card Layout
     private val splitter = OnePixelSplitter(
         false,
         initialRatio,
@@ -95,6 +99,7 @@ class ExpandableSplitter(
     ) : this(expandableText, expandableSide, initialRatio, configurer::accept)
 
     init {
+        // possible improvement: allow vertical orientation
         require(expandableSide == LEFT || expandableSide == RIGHT) { "Use either SwingConstants.LEFT or SwingConstants.RIGHT" }
         configurer.invoke(Configurer()).also {
             require(splitter.firstComponent != null || splitter.secondComponent == null) { "main or expandable component are not set" }
