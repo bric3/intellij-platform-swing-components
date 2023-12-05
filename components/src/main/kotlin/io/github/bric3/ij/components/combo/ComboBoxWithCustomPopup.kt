@@ -245,7 +245,9 @@ abstract class ComboBoxWithCustomPopup<T>(model: CollectionComboBoxModel<T>) :
                                       content.size: ${content.size}
                                       content.prefSize: ${content.preferredSize}
                                     """.trimIndent())
-                                adjustPosition(it, content.preferredSize, true)
+                                 invokeLater {
+                                    adjustPosition(it, content.preferredSize, true)
+                                 }
                             }
 
                             it.showUnderneathToTheRight(this@ComboBoxWithCustomPopup, content)
@@ -270,7 +272,7 @@ abstract class ComboBoxWithCustomPopup<T>(model: CollectionComboBoxModel<T>) :
     private fun adjustPosition(popup: JBPopup, newSize: Dimension, checkResizing: Boolean = false) {
         // TODO does work well with our custom popup
         val positionAdjuster = PopupPositionManager.PositionAdjuster(this)
-        val previousDimension = PopupPositionManager.PositionAdjuster.getPopupSize(popup)
+        val previousDimension = popupSize(popup)
         val adjustedBounds = positionAdjuster.adjustBounds(
             previousDimension, arrayOf(
                 PopupPositionManager.Position.BOTTOM,
@@ -335,12 +337,19 @@ abstract class ComboBoxWithCustomPopup<T>(model: CollectionComboBoxModel<T>) :
                     // Use the window directly to set the bounds
                     val popupWindow = ComponentUtil.getWindow(popup.content) ?: return
                     println("${Instant.now()} popupWindow.bounds: ${popupWindow.bounds}")
+                    // location first, then size
                     // popupWindow.location = adjustedBounds.location
                     // popupWindow.size = adjustedBounds.size
+
+                    // bounds approach
                     popupWindow.bounds = popupWindow.bounds.apply {
                         this.location = adjustedBounds.location
                         this.size = adjustedBounds.size
                     }
+
+                    // popupWindow.revalidate()
+                    popupWindow.doLayout()
+                    popupWindow.repaint(0)
                 } else {
                     val size = adjustedBounds.size
                     if (size != previousDimension) {
@@ -357,118 +366,20 @@ abstract class ComboBoxWithCustomPopup<T>(model: CollectionComboBoxModel<T>) :
         }
     }
 
-/*
-Open popup
-==========
-
-Breakpoint reached at com.datadog.intellij.context.ComboBoxCustomPopup$showCustomPopup$1$3$1.componentResized(ComboBoxCustomPopup.kt:226)
-[2023-10-05T08:21:28.733368Z] java.awt.Dimension[width=242,height=280]
-Breakpoint reached at com.datadog.intellij.context.ComboBoxCustomPopup.adjustPosition(ComboBoxCustomPopup.kt:286)
-[2023-10-05T08:21:28.759665Z] java.awt.Rectangle[x=212,y=0,width=242,height=30]
-Breakpoint reached at com.datadog.intellij.context.ComboBoxCustomPopup.adjustPosition(ComboBoxCustomPopup.kt:290)
-[2023-10-05T08:21:28.814572Z] popup.size: java.awt.Dimension[width=242,height=280]
-adjSize: java.awt.Dimension[width=242,height=280]
-newSize: java.awt.Dimension[width=242,height=280]
-prevDimension: java.awt.Dimension[width=242,height=280]
-
-
-Hover more / Expand
-===================
-Breakpoint reached at com.datadog.intellij.context.TimeFramePopupPopupCreationContext$MoreHoverHelpVisibilityTrigger.onHover$lambda$1(Timeframe.kt:473)
-[2023-10-05T08:21:39.653354Z] java.awt.Dimension[width=478,height=280]
-Breakpoint reached at com.datadog.intellij.context.ComboBoxCustomPopup$showCustomPopup$1$3$1.componentResized(ComboBoxCustomPopup.kt:226)
-[2023-10-05T08:21:39.667887Z] java.awt.Dimension[width=242,height=280]
-Breakpoint reached at com.datadog.intellij.context.ComboBoxCustomPopup.adjustPosition(ComboBoxCustomPopup.kt:286)
-[2023-10-05T08:21:39.672324Z] java.awt.Rectangle[x=212,y=0,width=242,height=30]
-Breakpoint reached at com.datadog.intellij.context.ComboBoxCustomPopup.adjustPosition(ComboBoxCustomPopup.kt:290)
-[2023-10-05T08:21:39.677113Z] popup.size: java.awt.Dimension[width=242,height=280]
-adjSize: java.awt.Dimension[width=478,height=280]
-newSize: java.awt.Dimension[width=242,height=280]
-prevDimension: java.awt.Dimension[width=478,height=280]
-Breakpoint reached at com.datadog.intellij.context.ComboBoxCustomPopup$showCustomPopup$1$3$1.componentResized(ComboBoxCustomPopup.kt:226)
-[2023-10-05T08:21:39.683363Z] java.awt.Dimension[width=242,height=280]
-Breakpoint reached at com.datadog.intellij.context.ComboBoxCustomPopup.adjustPosition(ComboBoxCustomPopup.kt:286)
-[2023-10-05T08:21:39.687531Z] java.awt.Rectangle[x=212,y=0,width=242,height=30]
-Breakpoint reached at com.datadog.intellij.context.ComboBoxCustomPopup.adjustPosition(ComboBoxCustomPopup.kt:290)
-[2023-10-05T08:21:39.692019Z] popup.size: java.awt.Dimension[width=242,height=280]
-adjSize: java.awt.Dimension[width=478,height=280]
-newSize: java.awt.Dimension[width=242,height=280]
-prevDimension: java.awt.Dimension[width=478,height=280]
-
-
-Loosing focus / closing
-=======================
-Breakpoint reached at com.datadog.intellij.context.TimeFramePopupPopupCreationContext$MoreHoverHelpVisibilityTrigger.onHover$lambda$1(Timeframe.kt:473)
-[2023-10-05T08:21:47.463775Z] java.awt.Dimension[width=478,height=280]
-Breakpoint reached at com.datadog.intellij.context.ComboBoxCustomPopup$showCustomPopup$1$3$1.componentResized(ComboBoxCustomPopup.kt:226)
-[2023-10-05T08:21:47.478630Z] java.awt.Dimension[width=478,height=280]
-Breakpoint reached at com.datadog.intellij.context.ComboBoxCustomPopup.adjustPosition(ComboBoxCustomPopup.kt:286)
-[2023-10-05T08:21:47.484846Z] java.awt.Rectangle[x=212,y=0,width=242,height=30]
-Breakpoint reached at com.datadog.intellij.context.ComboBoxCustomPopup.adjustPosition(ComboBoxCustomPopup.kt:290)
-[2023-10-05T08:21:47.492693Z] popup.size: java.awt.Dimension[width=242,height=280]
-adjSize: java.awt.Dimension[width=478,height=280]
-newSize: java.awt.Dimension[width=478,height=280]
-prevDimension: java.awt.Dimension[width=478,height=280]
-
-===========================================================================
-
-Open popup
-==========
-Breakpoint reached at com.datadog.intellij.context.ComboBoxCustomPopup$showCustomPopup$1$3$1.componentResized(ComboBoxCustomPopup.kt:226)
-[2023-10-05T08:26:28.547559Z] size: java.awt.Dimension[width=242,height=280]
-prefSize: java.awt.Dimension[width=242,height=280]
-Breakpoint reached at com.datadog.intellij.context.ComboBoxCustomPopup.adjustPosition(ComboBoxCustomPopup.kt:286)
-[2023-10-05T08:26:28.573864Z] java.awt.Rectangle[x=212,y=0,width=242,height=30]
-Breakpoint reached at com.datadog.intellij.context.ComboBoxCustomPopup.adjustPosition(ComboBoxCustomPopup.kt:290)
-[2023-10-05T08:26:28.630258Z] popup.size: java.awt.Dimension[width=242,height=280]
-adjSize: java.awt.Dimension[width=242,height=280]
-newSize: java.awt.Dimension[width=242,height=280]
-prevDimension: java.awt.Dimension[width=242,height=280]
-
-Hover more / Expand
-===================
-Breakpoint reached at com.datadog.intellij.context.TimeFramePopupPopupCreationContext$MoreHoverHelpVisibilityTrigger.onHover$lambda$1(Timeframe.kt:473)
-[2023-10-05T08:26:31.908400Z] java.awt.Dimension[width=478,height=280]
-Breakpoint reached at com.datadog.intellij.context.ComboBoxCustomPopup$showCustomPopup$1$3$1.componentResized(ComboBoxCustomPopup.kt:226)
-[2023-10-05T08:26:31.924166Z] size: java.awt.Dimension[width=242,height=280]
-prefSize: java.awt.Dimension[width=478,height=280]
-Breakpoint reached at com.datadog.intellij.context.ComboBoxCustomPopup.adjustPosition(ComboBoxCustomPopup.kt:286)
-[2023-10-05T08:26:31.929990Z] java.awt.Rectangle[x=212,y=0,width=242,height=30]
-Breakpoint reached at com.datadog.intellij.context.ComboBoxCustomPopup.adjustPosition(ComboBoxCustomPopup.kt:290)
-[2023-10-05T08:26:31.935492Z] popup.size: java.awt.Dimension[width=242,height=280]
-adjSize: java.awt.Dimension[width=478,height=280]
-newSize: java.awt.Dimension[width=478,height=280]
-prevDimension: java.awt.Dimension[width=478,height=280]
-Breakpoint reached at com.datadog.intellij.context.ComboBoxCustomPopup$showCustomPopup$1$3$1.componentResized(ComboBoxCustomPopup.kt:226)
-[2023-10-05T08:26:31.943181Z] size: java.awt.Dimension[width=242,height=280]
-prefSize: java.awt.Dimension[width=478,height=280]
-Breakpoint reached at com.datadog.intellij.context.ComboBoxCustomPopup.adjustPosition(ComboBoxCustomPopup.kt:286)
-[2023-10-05T08:26:31.949494Z] java.awt.Rectangle[x=212,y=0,width=242,height=30]
-Breakpoint reached at com.datadog.intellij.context.ComboBoxCustomPopup.adjustPosition(ComboBoxCustomPopup.kt:290)
-[2023-10-05T08:26:31.955458Z] popup.size: java.awt.Dimension[width=242,height=280]
-adjSize: java.awt.Dimension[width=478,height=280]
-newSize: java.awt.Dimension[width=478,height=280]
-prevDimension: java.awt.Dimension[width=478,height=280]
-
-
-Mouse move?
-===========
-Breakpoint reached at com.datadog.intellij.context.TimeFramePopupPopupCreationContext$MoreHoverHelpVisibilityTrigger.onHover$lambda$1(Timeframe.kt:473)
-[2023-10-05T08:26:32.191788Z] java.awt.Dimension[width=478,height=280]
-Breakpoint reached at com.datadog.intellij.context.ComboBoxCustomPopup$showCustomPopup$1$3$1.componentResized(ComboBoxCustomPopup.kt:226)
-[2023-10-05T08:26:32.201769Z] size: java.awt.Dimension[width=478,height=280]
-prefSize: java.awt.Dimension[width=478,height=280]
-Breakpoint reached at com.datadog.intellij.context.ComboBoxCustomPopup.adjustPosition(ComboBoxCustomPopup.kt:286)
-[2023-10-05T08:26:32.208411Z] java.awt.Rectangle[x=212,y=0,width=242,height=30]
-Breakpoint reached at com.datadog.intellij.context.ComboBoxCustomPopup.adjustPosition(ComboBoxCustomPopup.kt:290)
-[2023-10-05T08:26:32.214469Z] popup.size: java.awt.Dimension[width=242,height=280]
-adjSize: java.awt.Dimension[width=478,height=280]
-newSize: java.awt.Dimension[width=478,height=280]
-prevDimension: java.awt.Dimension[width=478,height=280]
-
-
-
-*/
+    /**
+     * Loose equivalent of [PopupPositionManager.PositionAdjuster.getPopupSize]
+     *
+     * THis method has been removed by mistake and moved to `PopupImplUtil` sometime
+     * during 2023.3 development, see this
+     * [commit](https://github.com/JetBrains/intellij-community/commit/edf3db21b1977bfd5b9585719ef649d7ad454971),
+     * this method was later added back in this [commit](https://github.com/JetBrains/intellij-community/commit/40f3c5aac846c39fe4aded0fe9f5243d2e03df7c) on `master` and `233` branches.
+     *
+     * See [IDEA-339764](https://youtrack.jetbrains.com/issue/IDEA-339764)
+     */
+    // Replace this method once based on 241 by PopupPositionManager.PositionAdjuster.getPopupSize
+    private fun popupSize(popup: JBPopup): Dimension {
+        return popup.content.preferredSize
+    }
 
     fun updatePopupBounds(size: Dimension) {
         customPopup?.let {
