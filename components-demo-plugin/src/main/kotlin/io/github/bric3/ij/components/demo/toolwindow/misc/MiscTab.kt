@@ -15,12 +15,13 @@ import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
-import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.observable.properties.AtomicLazyProperty
+import com.intellij.openapi.observable.util.bindVisible
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.DumbAwareToggleAction
 import com.intellij.openapi.ui.popup.util.PopupUtil
@@ -45,14 +46,12 @@ import io.github.bric3.ij.components.combo.ComboBoxWithCustomPopup.Companion.mak
 import io.github.bric3.ij.components.demo.toolwindow.DemoToolWindowFactory
 import io.github.bric3.ij.components.icon.SvgIcon
 import java.awt.Dimension
-import java.awt.Point
 import java.io.InputStream
 import javax.annotation.Priority
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JList
 import javax.swing.JPanel
-import javax.swing.JViewport
 import javax.swing.SwingConstants
 
 class MiscTab : BorderLayoutPanel() {
@@ -97,9 +96,9 @@ class MiscTab : BorderLayoutPanel() {
                 }
             }
             customize(UnscaledGaps(left = 3, right = 3))
-        }
-            // .bindVisible(detailsVisibility)
-            .withMinimumWidth(150).withPreferredWidth(150)
+        }.bindVisible(detailsVisibility)
+            .withMinimumWidth(150)
+            .withPreferredWidth(150)
 
         private val list = combo.makeComboBoxList().apply {
             object : ListHoverListener() {
@@ -117,20 +116,17 @@ class MiscTab : BorderLayoutPanel() {
 
         override fun createPopupContent(): JComponent {
             return JPanel(HorizontalLayout(0)).apply {
-                add(details.apply { isVisible = true }, HorizontalLayout.LEFT)
+                add(details.apply { isVisible = false }, HorizontalLayout.LEFT)
                 add(BorderLayoutPanel()
                     .addToCenter(list)
                     .addToBottom(panel {
                         row {
                             actionButtonWithText(object : DumbAwareToggleAction("Show details") {
                                 override fun isSelected(e: AnActionEvent) = detailsVisibility.get()
-                                override fun setSelected(e: AnActionEvent, state: Boolean) {
-                                    detailsVisibility.set(state)
-                                    this@apply.revalidate()
-                                }
+                                override fun setSelected(e: AnActionEvent, state: Boolean) =
+                                        detailsVisibility.set(state)
+                                override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
                             })
-
-                            // checkBox("Show details").bindSelected(detailsVisibility)
                         }
                     }),
                     HorizontalLayout.RIGHT
@@ -141,52 +137,14 @@ class MiscTab : BorderLayoutPanel() {
                 border = JBUI.Borders.empty(PopupUtil.getListInsets(false, false))
                 PopupUtil.applyNewUIBackground(this)
 
-                detailsVisibility.afterChange { isVisible ->
-                    invokeLater {
-                        this.parent.preferredSize = when(isVisible) {
-                            true -> Dimension(list.width + details.preferredWidth, this.height)
-                            false -> Dimension(list.width, this.height)
-                        }
-                        this.parent.revalidate()
-                        // this.repaint()
-
-
-                    }
-                }
-            }.let {
-                PopupViewPort().apply {
-                    view = it
+                detailsVisibility.afterChange {
+                    combo.updatePopupBounds(when (it) {
+                        true -> Dimension(list.width + details.preferredWidth, height)
+                        false -> Dimension(list.width, height)
+                    })
                 }
             }
         }
-
-        class PopupViewPort : JViewport() {
-            private val parentSizeListener = object : java.awt.event.ComponentAdapter() {
-                override fun componentResized(e: java.awt.event.ComponentEvent) {
-                    val parentSize = parent.size
-                    val offsetX = view.width - parentSize.width
-                    println("the offset after popup is resized: $offsetX")
-                    viewPosition = Point(offsetX, 0)
-                    revalidate()
-                }
-            }
-
-            override fun addNotify() {
-                super.addNotify()
-
-                val parentSize = parent.size
-                val offsetX = view.width - parentSize.width
-                viewPosition = Point(offsetX, 0)
-
-                parent.addComponentListener(parentSizeListener)
-            }
-
-            override fun removeNotify() {
-                super.removeNotify()
-                parent.removeComponentListener(parentSizeListener)
-            }
-        }
-
 
         private fun Row.actionButtonWithText(action: AnAction) : Cell<ActionButtonWithText> {
             return cell(ActionButtonWithText(
