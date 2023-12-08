@@ -19,12 +19,13 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
+import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.observable.properties.AtomicLazyProperty
-import com.intellij.openapi.observable.util.bindVisible
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.DumbAwareToggleAction
 import com.intellij.openapi.ui.popup.util.PopupUtil
 import com.intellij.ui.CollectionComboBoxModel
+import com.intellij.ui.components.panels.HorizontalLayout
 import com.intellij.ui.dsl.builder.Align
 import com.intellij.ui.dsl.builder.AlignX
 import com.intellij.ui.dsl.builder.Cell
@@ -32,6 +33,7 @@ import com.intellij.ui.dsl.builder.Panel
 import com.intellij.ui.dsl.builder.Row
 import com.intellij.ui.dsl.builder.bindText
 import com.intellij.ui.dsl.builder.panel
+import com.intellij.ui.dsl.gridLayout.UnscaledGaps
 import com.intellij.ui.hover.ListHoverListener
 import com.intellij.ui.tabs.TabInfo
 import com.intellij.ui.util.preferredWidth
@@ -43,11 +45,14 @@ import io.github.bric3.ij.components.combo.ComboBoxWithCustomPopup.Companion.mak
 import io.github.bric3.ij.components.demo.toolwindow.DemoToolWindowFactory
 import io.github.bric3.ij.components.icon.SvgIcon
 import java.awt.Dimension
+import java.awt.Point
 import java.io.InputStream
 import javax.annotation.Priority
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JList
+import javax.swing.JPanel
+import javax.swing.JViewport
 import javax.swing.SwingConstants
 
 class MiscTab : BorderLayoutPanel() {
@@ -91,7 +96,10 @@ class MiscTab : BorderLayoutPanel() {
                     label("").bindText(hoveredDetail)
                 }
             }
-        }.bindVisible(detailsVisibility).withMinimumWidth(150).withPreferredWidth(150)
+            customize(UnscaledGaps(left = 3, right = 3))
+        }
+            // .bindVisible(detailsVisibility)
+            .withMinimumWidth(150).withPreferredWidth(150)
 
         private val list = combo.makeComboBoxList().apply {
             object : ListHoverListener() {
@@ -108,21 +116,24 @@ class MiscTab : BorderLayoutPanel() {
         override fun getPreferredFocusableComponent() = list
 
         override fun createPopupContent(): JComponent {
-            return BorderLayoutPanel().apply {
-                addToLeft(details.apply { isVisible = false })
-                addToCenter(BorderLayoutPanel()
+            return JPanel(HorizontalLayout(0)).apply {
+                add(details.apply { isVisible = true }, HorizontalLayout.LEFT)
+                add(BorderLayoutPanel()
                     .addToCenter(list)
                     .addToBottom(panel {
                         row {
                             actionButtonWithText(object : DumbAwareToggleAction("Show details") {
                                 override fun isSelected(e: AnActionEvent) = detailsVisibility.get()
-                                override fun setSelected(e: AnActionEvent, state: Boolean) =
+                                override fun setSelected(e: AnActionEvent, state: Boolean) {
                                     detailsVisibility.set(state)
+                                    this@apply.revalidate()
+                                }
                             })
 
                             // checkBox("Show details").bindSelected(detailsVisibility)
                         }
-                    })
+                    }),
+                    HorizontalLayout.RIGHT
                 )
 
                 // Applying the border here, instead of content
@@ -130,15 +141,53 @@ class MiscTab : BorderLayoutPanel() {
                 border = JBUI.Borders.empty(PopupUtil.getListInsets(false, false))
                 PopupUtil.applyNewUIBackground(this)
 
-                detailsVisibility.afterChange {
-                    this.preferredSize = if (it)
-                        Dimension(list.width + details.preferredWidth, this.height)
-                    else
-                        Dimension(list.width, this.height)
+                detailsVisibility.afterChange { isVisible ->
+                    invokeLater {
+                        this.parent.preferredSize = when(isVisible) {
+                            true -> Dimension(list.width + details.preferredWidth, this.height)
+                            false -> Dimension(list.width, this.height)
+                        }
+                        this.parent.revalidate()
+                        // this.repaint()
+
+
+                    }
+                }
+            }.let {
+                PopupViewPort().apply {
+                    view = it
                 }
             }
         }
-        
+
+        class PopupViewPort : JViewport() {
+            private val parentSizeListener = object : java.awt.event.ComponentAdapter() {
+                override fun componentResized(e: java.awt.event.ComponentEvent) {
+                    val parentSize = parent.size
+                    val offsetX = view.width - parentSize.width
+                    println("the offset after popup is resized: $offsetX")
+                    viewPosition = Point(offsetX, 0)
+                    revalidate()
+                }
+            }
+
+            override fun addNotify() {
+                super.addNotify()
+
+                val parentSize = parent.size
+                val offsetX = view.width - parentSize.width
+                viewPosition = Point(offsetX, 0)
+
+                parent.addComponentListener(parentSizeListener)
+            }
+
+            override fun removeNotify() {
+                super.removeNotify()
+                parent.removeComponentListener(parentSizeListener)
+            }
+        }
+
+
         private fun Row.actionButtonWithText(action: AnAction) : Cell<ActionButtonWithText> {
             return cell(ActionButtonWithText(
                 action,
@@ -222,6 +271,9 @@ class MiscTab : BorderLayoutPanel() {
                 icon(SvgIcon.fromStream(classpath("/icons/mushrooms-svgrepo-com.svg"), 10))
                 icon(SvgIcon.fromStream(classpath("/icons/potatoes-svgrepo-com.svg"), 10))
                 icon(SvgIcon.fromStream(classpath("/icons/strawberry-svgrepo-com.svg"), 10))
+            }
+            row {
+                icon(SvgIcon.fromStream(classpath("/icons/excalidraw-logo.svg"), 100))
             }
         }
     }
