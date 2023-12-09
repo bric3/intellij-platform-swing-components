@@ -20,6 +20,7 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.DumbAwareToggleAction
 import com.intellij.ui.dsl.builder.Align
+import com.intellij.ui.dsl.builder.actionButton
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.ui.tabs.TabInfo
 import com.intellij.util.ui.JBUI
