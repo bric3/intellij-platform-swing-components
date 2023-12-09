@@ -72,14 +72,15 @@ class ColoredJProgressBar(min: Int, max: Int) : JProgressBar(HORIZONTAL, min, ma
             }
         }
 
-        fun getFinishedColor(c: JComponent?): Color {
+        override fun getFinishedColor(c: JComponent?): Color {
             return when (val customFinishedColor = coloredJProgressBar.finishedColor) {
                 null -> superGetFinishedColor(c)
                 else -> customFinishedColor
             }
         }
 
-        override fun getFinishedColor(): Color {
+        @Suppress("unused") // for older than 231
+        fun getFinishedColor(): Color {
             return getFinishedColor(null)
         }
 
