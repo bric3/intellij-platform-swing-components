@@ -138,7 +138,7 @@ class MiscTab : BorderLayoutPanel() {
                 PopupUtil.applyNewUIBackground(this)
 
                 detailsVisibility.afterChange {
-                    combo.updatePopupBounds(when (it) {
+                    combo.reshapePopup(when (it) {
                         true -> Dimension(list.width + details.preferredWidth, height)
                         false -> Dimension(list.width, height)
                     })

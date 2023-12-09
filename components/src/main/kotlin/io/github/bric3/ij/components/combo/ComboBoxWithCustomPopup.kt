@@ -14,15 +14,18 @@ package io.github.bric3.ij.components.combo
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.ui.ComboBox
+import com.intellij.openapi.ui.getUserData
 import com.intellij.openapi.ui.popup.JBPopup
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.ui.popup.JBPopupListener
 import com.intellij.openapi.ui.popup.LightweightWindowEvent
 import com.intellij.openapi.ui.popup.util.PopupUtil
+import com.intellij.openapi.ui.putUserData
 import com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.Key
+import com.intellij.openapi.wm.IdeFocusManager
 import com.intellij.ui.AnimatedIcon.ANIMATION_IN_RENDERER_ALLOWED
 import com.intellij.ui.CollectionComboBoxModel
-import com.intellij.ui.ComponentUtil
 import com.intellij.ui.ListSpeedSearch
 import com.intellij.ui.PopupMenuListenerAdapter
 import com.intellij.ui.ScrollingUtil
@@ -54,7 +57,6 @@ import javax.swing.JRootPane
 import javax.swing.JSeparator
 import javax.swing.ListCellRenderer
 import javax.swing.ListSelectionModel
-import javax.swing.RepaintManager
 import javax.swing.SwingUtilities
 import javax.swing.event.MouseInputAdapter
 import javax.swing.event.PopupMenuEvent
@@ -185,64 +187,18 @@ abstract class ComboBoxWithCustomPopup<T>(model: CollectionComboBoxModel<T>) :
 
             try {
                 val popupContext = getPopupCreationContext(parentDisposable = popupDisposable)
-                val content = popupContext.createPopupContent()
+                val popupContent = popupContext.createPopupContent()
 
-                PopupUtil.applyNewUIBackground(content)
+                PopupUtil.applyNewUIBackground(popupContent)
 
                 // Creates a popup with the same setting as
-                customPopup =
-                        JBPopupFactory.getInstance()
-                                .createComponentPopupBuilder(
-                                        content,
-                                        popupContext.getPreferredFocusableComponent()
-                                )
-                                .setRequestFocus(false) // If true there's a strange effect when clicking outside the popup
-                                .setFocusable(true)
-                                .setMovable(false)
-                                .setCancelOnClickOutside(true)
-                                .setCancelOnOtherWindowOpen(true)
-                                .setCancelKeyEnabled(true)
-                                .setLocateByContent(false)
-                                .setLocateWithinScreenBounds(true)
-                                .setModalContext(false)
-                                .setMayBeParent(true) // this creates a popup as a dialog with alwaysOnTop=false
-                                .setShowShadow(true)
-                                .setShowBorder(true)
-                                .setCancelOnWindowDeactivation(true)
-                                .setCancelCallback {
-                                    if (popupNeedsCancel.getAndSet(false)) {
-                                        return@setCancelCallback true
-                                    }
-                                    // If the popup owner is not visible or not showing, then cancel is allowed
-                                    if (!this@ComboBoxWithCustomPopup.isVisible || !this@ComboBoxWithCustomPopup.isShowing) {
-                                        return@setCancelCallback true
-                                    }
-                                    // If the popup is shown and the pointer is
-                                    // not within the bounds of the combobox, then cancel is allowed
-                                    val mousePos: Point = MouseInfo.getPointerInfo().location
-                                    val bounds = this@ComboBoxWithCustomPopup.bounds.apply {
-                                        location = locationOnScreen
-                                    }
-                                    return@setCancelCallback !bounds.contains(mousePos)
-                                }
-                                // .setCancelOnMouseOutCallback {
-                                //     true
-                                // }
-                                .addListener(object : JBPopupListener {
-                                    override fun beforeShown(event: LightweightWindowEvent) {
-                                        // Possibly install similar mouse listeners as ListPopupImpl
-                                        // com.intellij.ui.popup.list.ListPopupImpl.beforeShow
-                                    }
-
-                                    override fun onClosed(event: LightweightWindowEvent) {
-                                        Disposer.dispose(popupDisposable)
-                                        customPopup = null
-                                        popupCreating.set(false)
-                                    }
-                                })
-                                .createPopup().also {
-                                    it.showUnderneathToTheRight()
-                                }
+                customPopup = createCustomPopup(
+                        popupContent,
+                        popupContext.getPreferredFocusableComponent(),
+                        popupDisposable
+                ).also {
+                    it.showUnderneathToTheRight()
+                }
             } catch (e: Exception) {
                 e.printStackTrace()
                 return@invokeLater
@@ -252,8 +208,116 @@ abstract class ComboBoxWithCustomPopup<T>(model: CollectionComboBoxModel<T>) :
         }
     }
 
+    private fun createCustomPopup(
+            popupContent: JComponent,
+            preferredFocusableComponent: JComponent?,
+            popupDisposable: Disposable
+    ) = JBPopupFactory.getInstance()
+                    .createComponentPopupBuilder(
+                            popupContent,
+                            preferredFocusableComponent
+                    )
+                    .setRequestFocus(false) // If true there's a strange effect when clicking outside the popup
+                    .setFocusable(true)
+                    .setMovable(false)
+                    .setCancelOnClickOutside(true)
+                    .setCancelOnOtherWindowOpen(true)
+                    .setCancelKeyEnabled(true)
+                    .setLocateByContent(false)
+                    .setLocateWithinScreenBounds(true)
+                    .setModalContext(false)
+                    .setMayBeParent(true) // this creates a popup as a dialog with alwaysOnTop=false
+                    .setShowShadow(true)
+                    .setShowBorder(true)
+                    .setCancelOnWindowDeactivation(true)
+                    .setCancelCallback {
+                        if (popupNeedsCancel.getAndSet(false)) {
+                            return@setCancelCallback true
+                        }
+                        // If the popup owner is not visible or not showing, then cancel is allowed
+                        if (!this@ComboBoxWithCustomPopup.isVisible || !this@ComboBoxWithCustomPopup.isShowing) {
+                            return@setCancelCallback true
+                        }
+                        // If the popup is shown and the pointer is
+                        // not within the bounds of the combobox, then cancel is allowed
+                        val mousePos: Point = MouseInfo.getPointerInfo().location
+                        val bounds = this@ComboBoxWithCustomPopup.bounds.apply {
+                            location = locationOnScreen
+                        }
+                        return@setCancelCallback !bounds.contains(mousePos)
+                    }
+                    // .setCancelOnMouseOutCallback {
+                    //     true
+                    // }
+                    .addListener(object : JBPopupListener {
+                        override fun beforeShown(event: LightweightWindowEvent) {
+                            // Possibly install similar mouse listeners as ListPopupImpl
+                            // com.intellij.ui.popup.list.ListPopupImpl.beforeShow
+                        }
+
+                        override fun onClosed(event: LightweightWindowEvent) {
+                            // don't call this listener when reshaping
+                            if (closeDueToReshaping) {
+                                return
+                            }
+                            Disposer.dispose(popupDisposable)
+                            customPopup = null
+                            popupCreating.set(false)
+                            closeDueToReshaping = false
+                        }
+                    })
+                    .createPopup().also {
+                        it.content.putUserData(POPUP_CONTENT, popupContent)
+                        it.content.putUserData(POPUP_DISPOSABLE, popupDisposable)
+                    }
+
+    val POPUP_CONTENT = Key.create<JComponent>(ComboBoxWithCustomPopup::class.simpleName!! + ".POPUP_CONTENT")
+    val POPUP_DISPOSABLE = Key.create<Disposable>(ComboBoxWithCustomPopup::class.simpleName!! + ".POPUP_DISPOSABLE")
+    var closeDueToReshaping = false
+
     private fun JBPopup.showUnderneathToTheRight() {
         showOrAdjustPosition(this)
+    }
+
+    /**
+     * Actually does not reshape the current popup but instead
+     * creates a new one with the same content.
+     */
+    fun reshapePopup(newSize: Dimension) {
+        val oldPopup = customPopup
+        if (oldPopup != null) {
+            if (oldPopup.isDisposed) return
+
+            val popupContent = oldPopup.content.getUserData(POPUP_CONTENT)!!
+            val focusOwner = IdeFocusManager.findInstance().focusOwner as? JComponent ?: popupContent
+            val popupDisposable = oldPopup.content.getUserData(POPUP_DISPOSABLE)!!
+
+            customPopup = createCustomPopup(
+                    popupContent,
+                    focusOwner,
+                    popupDisposable
+            ).also {
+                it.showUnderneathToTheRight()
+            }
+
+            // synthetic mouse move event so that component
+            // that reacted before to a previous mouse event
+            // can react again to the new mouse event
+            val mouseLocation = MouseInfo.getPointerInfo().location
+            popupContent.dispatchEvent(MouseEvent(
+                    popupContent,
+                    MouseEvent.MOUSE_MOVED,
+                    System.currentTimeMillis(),
+                    0,
+                    mouseLocation.x,
+                    mouseLocation.y,
+                    0,
+                    false
+            ))
+
+            closeDueToReshaping = true
+            oldPopup.cancel()
+        }
     }
 
     private fun showOrAdjustPosition(popup: JBPopup, checkResizing: Boolean = false) {
@@ -272,44 +336,44 @@ abstract class ComboBoxWithCustomPopup<T>(model: CollectionComboBoxModel<T>) :
         if (checkResizing && popupSize != null && adjustedBounds.height < 100) {
             setPopupVisible(false)
         } else {
-            if (popup.canShow()) {
-                val locationOnScreen = this@ComboBoxWithCustomPopup.locationOnScreen
-                popup.show(
-                        RelativePoint(
-                                this@ComboBoxWithCustomPopup,
-                                Point(
-                                        this@ComboBoxWithCustomPopup.width - previousDimension.width,
-                                        adjustedBounds.y - locationOnScreen.y
-                                )
-                        )
-                )
-            } else {
-                // Note: Setting the location before the size is important to avoid flickering
-                // when the popup is expanded (on the left)
-                // However, when the popup is reduced to its original size
-                // then the popup still flickers.
-
-                // TODO make the sticky side (LEFT or RIGHT) configurable
-                adjustedBounds.apply {
-                    x = x + this@ComboBoxWithCustomPopup.width - adjustedBounds.width
-                    width = adjustedBounds.width
-                    height = adjustedBounds.height
-                }
-
-                // Use the window directly to set the bounds
-                val popupWindow = ComponentUtil.getWindow(popup.content) ?: return
-
-                popupWindow.invalidate()
-                RepaintManager.currentManager(popupWindow).markCompletelyDirty(popup.content)
-
-                // bounds approach
-                popupWindow.setBounds(
-                        adjustedBounds.x,
-                        adjustedBounds.y,
-                        adjustedBounds.width,
-                        adjustedBounds.height
-                )
-            }
+            check(popup.canShow())
+            val locationOnScreen = this@ComboBoxWithCustomPopup.locationOnScreen
+            popup.show(
+                    RelativePoint(
+                            this@ComboBoxWithCustomPopup,
+                            Point(
+                                    this@ComboBoxWithCustomPopup.width - previousDimension.width,
+                                    adjustedBounds.y - locationOnScreen.y
+                            )
+                    )
+            )
+//            } else {
+//                // Note: Setting the location before the size is important to avoid flickering
+//                // when the popup is expanded (on the left)
+//                // However, when the popup is reduced to its original size
+//                // then the popup still flickers.
+//
+//                // TODO make the sticky side (LEFT or RIGHT) configurable
+//                adjustedBounds.apply {
+//                    x = x + this@ComboBoxWithCustomPopup.width - adjustedBounds.width
+//                    width = adjustedBounds.width
+//                    height = adjustedBounds.height
+//                }
+//
+//                // Use the window directly to set the bounds
+//                val popupWindow = ComponentUtil.getWindow(popup.content) ?: return
+//
+//                popupWindow.invalidate()
+//                RepaintManager.currentManager(popupWindow).markCompletelyDirty(popup.content)
+//
+//                // bounds approach
+//                popupWindow.setBounds(
+//                        adjustedBounds.x,
+//                        adjustedBounds.y,
+//                        adjustedBounds.width,
+//                        adjustedBounds.height
+//                )
+//            }
         }
     }
 
@@ -337,14 +401,6 @@ abstract class ComboBoxWithCustomPopup<T>(model: CollectionComboBoxModel<T>) :
     // Replace this method once based on 241 by PopupPositionManager.PositionAdjuster.getPopupSize
     private fun popupSize(popup: JBPopup): Dimension {
         return popup.content.preferredSize
-    }
-
-    fun updatePopupBounds(newSize: Dimension) {
-        customPopup?.let {
-            if (it.isDisposed) return
-
-            showOrAdjustPosition(it, true)
-        }
     }
 
     protected fun customPopup(): JBPopup? {
