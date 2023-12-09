@@ -1,5 +1,7 @@
 = IntelliJ Platform Swing Components
 
+⚠️ WORK IN PROGRESS ⚠️
+
 [link=https://github.com/bric3/intellij-platform-swing-components/actions/workflows/build.yaml]
 image::https://github.com/bric3/intellij-platform-swing-components/actions/workflows/build.yaml/badge.svg[Build Workflow]
 
@@ -26,6 +28,10 @@ Or the shipped run configuration _demo-plugin [runIde]_ for IntelliJ IDEA.
 
 * `ScaledJBTable` and `ScaledTableView` fix an issue regarding the row height
 when using custom renderer and switching back and forth between presentation mode.
++
+Note a fix is coming in https://github.com/JetBrains/intellij-community/commit/f861bdb0e69a9af16b777e1e29cc3131e8e58987[2023.3],
+see https://youtrack.jetbrains.com/issue/IDEA-320501/Zooming-in-tables-in-Profiler-TW[IDEA-320501] and https://youtrack.jetbrains.com/issue/IDEA-289745/JBTable.updateUI-does-not-recompute-the-row-height-which-breaks-when-switching-presentation-mode[IDEA-289745].
++
 + Compare without and with the fix:
 +
 .Presentation mode *before* fix
