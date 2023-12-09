@@ -26,7 +26,6 @@ import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.DumbAwareToggleAction
 import com.intellij.openapi.ui.popup.util.PopupUtil
 import com.intellij.ui.CollectionComboBoxModel
-import com.intellij.ui.components.panels.HorizontalLayout
 import com.intellij.ui.dsl.builder.Align
 import com.intellij.ui.dsl.builder.AlignX
 import com.intellij.ui.dsl.builder.Cell
@@ -51,7 +50,6 @@ import javax.annotation.Priority
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JList
-import javax.swing.JPanel
 import javax.swing.SwingConstants
 
 class MiscTab : BorderLayoutPanel() {
@@ -115,9 +113,9 @@ class MiscTab : BorderLayoutPanel() {
         override fun getPreferredFocusableComponent() = list
 
         override fun createPopupContent(): JComponent {
-            return JPanel(HorizontalLayout(0)).apply {
-                add(details.apply { isVisible = false }, HorizontalLayout.LEFT)
-                add(BorderLayoutPanel()
+            return BorderLayoutPanel().apply {
+                addToLeft(details.apply { isVisible = false })
+                addToCenter(BorderLayoutPanel()
                     .addToCenter(list)
                     .addToBottom(panel {
                         row {
@@ -128,8 +126,7 @@ class MiscTab : BorderLayoutPanel() {
                                 override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
                             })
                         }
-                    }),
-                    HorizontalLayout.RIGHT
+                    })
                 )
 
                 // Applying the border here, instead of content
