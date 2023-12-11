@@ -41,7 +41,6 @@ import com.intellij.util.ArrayUtil
 import com.intellij.util.Functions
 import com.intellij.util.ui.JBUI
 import java.awt.Component
-import java.awt.Container
 import java.awt.Cursor
 import java.awt.Dimension
 import java.awt.MouseInfo
@@ -51,10 +50,8 @@ import java.awt.event.FocusListener
 import java.awt.event.MouseEvent
 import java.awt.event.MouseListener
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.function.Consumer
 import javax.swing.JComponent
 import javax.swing.JList
-import javax.swing.JRootPane
 import javax.swing.JSeparator
 import javax.swing.ListCellRenderer
 import javax.swing.ListSelectionModel
@@ -268,12 +265,10 @@ abstract class ComboBoxWithCustomPopup<T>(model: CollectionComboBoxModel<T>) :
                 }
             })
             .createPopup().also {
-                it.content.putUserData(POPUP_CONTENT, popupContent)
-                it.content.putUserData(POPUP_DISPOSABLE, popupDisposable)
+                it.content.putUserData(Companion.POPUP_CONTENT, popupContent)
+                it.content.putUserData(Companion.POPUP_DISPOSABLE, popupDisposable)
             }
 
-    val POPUP_CONTENT = Key.create<JComponent>(ComboBoxWithCustomPopup::class.simpleName!! + ".POPUP_CONTENT")
-    val POPUP_DISPOSABLE = Key.create<Disposable>(ComboBoxWithCustomPopup::class.simpleName!! + ".POPUP_DISPOSABLE")
     var closeDueToReshaping = false
 
     private fun JBPopup.showUnderneathToTheRight() {
@@ -288,9 +283,9 @@ abstract class ComboBoxWithCustomPopup<T>(model: CollectionComboBoxModel<T>) :
         val oldPopup = customPopup ?: return
         if (oldPopup.isDisposed) return
 
-        val popupContent = oldPopup.content.getUserData(POPUP_CONTENT)!!
+        val popupContent = oldPopup.content.getUserData(Companion.POPUP_CONTENT)!!
         val focusOwner = IdeFocusManager.findInstance().focusOwner as? JComponent ?: popupContent
-        val popupDisposable = oldPopup.content.getUserData(POPUP_DISPOSABLE)!!
+        val popupDisposable = oldPopup.content.getUserData(Companion.POPUP_DISPOSABLE)!!
 
         // Try first to unmount popupContent from the old popup
         popupContent.parent.remove(popupContent)
@@ -349,17 +344,6 @@ abstract class ComboBoxWithCustomPopup<T>(model: CollectionComboBoxModel<T>) :
                             )
                     )
             )
-        }
-    }
-
-    private fun forEachParentComponent(container: Container, consumer: Consumer<in Component>) {
-        var c: Container? = container
-        while (c != null) {
-            consumer.accept(c)
-            c = c.parent
-            if (c is JRootPane) {
-                break
-            }
         }
     }
 
@@ -491,6 +475,9 @@ abstract class ComboBoxWithCustomPopup<T>(model: CollectionComboBoxModel<T>) :
                 ListHoverListener.DEFAULT.addTo(this)
             }
         }
+
+        val POPUP_CONTENT = Key.create<JComponent>(ComboBoxWithCustomPopup::class.simpleName!! + ".POPUP_CONTENT")
+        val POPUP_DISPOSABLE = Key.create<Disposable>(ComboBoxWithCustomPopup::class.simpleName!! + ".POPUP_DISPOSABLE")
     }
 
     @Suppress("UNCHECKED_CAST")
