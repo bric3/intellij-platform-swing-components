@@ -461,7 +461,7 @@ abstract class ComboBoxWithCustomPopup<T>(model: CollectionComboBoxModel<T>) :
                         customPopup?.cancel()
                     }
                 },
-        ): JComponent {
+        ): JList<E> {
             return JBList(items).apply {
                 name = "dd.timeframe.options"
                 cellRenderer = renderer
@@ -469,7 +469,7 @@ abstract class ComboBoxWithCustomPopup<T>(model: CollectionComboBoxModel<T>) :
                 visibleRowCount = itemsCount
                 addMouseListener(object : MouseInputAdapter() {
                     override fun mouseReleased(e: MouseEvent) {
-                        if (model.size == 0) return
+                        if (model.size == 0 || selectedIndex < 0) return
                         onClick(this@apply, selectedIndex, selectedValue)
                     }
                 })
