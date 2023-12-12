@@ -43,6 +43,7 @@ import io.github.bric3.ij.components.ExpandableSplitter
 import io.github.bric3.ij.components.combo.ComboBoxWithCustomPopup
 import io.github.bric3.ij.components.combo.ComboBoxWithCustomPopup.Companion.makeComboBoxList
 import io.github.bric3.ij.components.demo.toolwindow.DemoToolWindowFactory
+import io.github.bric3.ij.components.dsl.actionLink
 import io.github.bric3.ij.components.icon.SvgIcon
 import java.awt.Dimension
 import java.io.InputStream
@@ -64,21 +65,27 @@ class MiscTab : BorderLayoutPanel() {
     }
 
     private fun Panel.customPopupComboBox() {
-        group("Custom Combobox Popup") {
+        group("Various") {
             row {
+                actionLink(object : DumbAwareAction("Dialog Example") {
+                    override fun actionPerformed(e: AnActionEvent) {
+                        ExampleDialog(e.project!!).show()
+                    }
+                })
+
+                label("Custom Popup ComboBox").align(AlignX.RIGHT)
                 val values = mapOf(
                     "a" to "details about a",
                     "b" to "details about b",
                     "c" to "details about c",
                 )
-
                 cell(
                     object : ComboBoxWithCustomPopup<String>(CollectionComboBoxModel(values.keys.sorted())) {
                         override fun getPopupCreationContext(parentDisposable: Disposable): PopupCreationContext {
                             return MyPopupCreationContext(this, values)
                         }
                     }
-                ).align(AlignX.CENTER)
+                ).align(AlignX.RIGHT)
             }
         }
     }

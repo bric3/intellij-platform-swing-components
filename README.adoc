@@ -65,6 +65,11 @@ Git Toolwindow to show branches.
 +
 image::.github/images/ExpandableSplitter.gif[ExpandableSplitter]
 
+* `DialogWrapper2` extends `DialogWrapper` with methods to convert `com.intellij.openapi.actionSystem.AnAction` to
+`javax.swing.Action`, multiple choice buttons are supported as well.
++
+image::.github/images/DialogWrapper2.png[DialogWrapper2]
+
 == Tests
 
 I don't exactly know how to test Swing components at this time,
