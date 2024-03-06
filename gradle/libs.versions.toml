@@ -2,7 +2,7 @@
 # libraries
 annotations = "24.1.0"
 jsvg = "1.4.0"
-classgraph = "4.8.165"
+classgraph = "4.8.167"
 
 kotlin = "1.9.22"
 kotlin-coroutines = "1.6.4"
