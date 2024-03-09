@@ -4,7 +4,7 @@ annotations = "24.1.0"
 jsvg = "1.4.0"
 classgraph = "4.8.167"
 
-kotlin = "1.9.22"
+kotlin = "1.9.23"
 kotlin-coroutines = "1.6.4"
 junit-jupiter = "5.10.2"
 assertj = "3.25.3"
