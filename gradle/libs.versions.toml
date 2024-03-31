@@ -13,7 +13,7 @@ assertj = "3.25.3"
 changelog = "2.2.0"
 detekt = "1.23.6"
 dokka = "1.9.20"
-gradleIntelliJPlugin = "1.17.2"
+gradleIntelliJPlugin = "1.17.3"
 spotless = "6.25.0"
 
 [libraries]
