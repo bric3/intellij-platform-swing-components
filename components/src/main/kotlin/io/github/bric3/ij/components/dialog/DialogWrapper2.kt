@@ -11,16 +11,19 @@
  */
 package io.github.bric3.ij.components.dialog
 
-import com.intellij.collaboration.ui.util.getName
 import com.intellij.ide.DataManager
 import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.PlatformCoreDataKeys
 import com.intellij.openapi.actionSystem.ex.ActionUtil
+import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.DialogWrapperPeer
 import com.intellij.openapi.ui.OptionAction
+import org.jetbrains.annotations.Nls
 import java.awt.Component
 import java.awt.event.ActionEvent
 import java.awt.event.InputEvent
@@ -135,7 +138,7 @@ abstract class DialogWrapper2 : DialogWrapper {
      * @see swingAction
      */
     protected fun swingChoiceAction(defaultAction: Action, vararg options: Action): OptionAction {
-        return object : AbstractAction(defaultAction.getName()), OptionAction {
+        return object : AbstractAction(defaultAction.name), OptionAction {
             override fun actionPerformed(e: ActionEvent) {
                 defaultAction.actionPerformed(e)
             }
@@ -155,5 +158,32 @@ abstract class DialogWrapper2 : DialogWrapper {
 
     companion object {
         private const val AN_ACTION_KEY = "dd.anAction"
+    }
+}
+
+var Action.name: @Nls String?
+    get() = getValue(Action.NAME) as? String
+    set(value) {
+        putValue(Action.NAME, value)
+    }
+
+fun Action.toAnAction(): AnAction {
+    val action = this
+    return object : DumbAwareAction(action.name.orEmpty()) {
+        override fun getActionUpdateThread(): ActionUpdateThread {
+            return ActionUpdateThread.EDT
+        }
+
+        override fun update(e: AnActionEvent) {
+            e.presentation.isEnabled = action.isEnabled
+        }
+
+        override fun actionPerformed(event: AnActionEvent) {
+            val actionEvent = ActionEvent(event.getData(PlatformCoreDataKeys.CONTEXT_COMPONENT),
+                ActionEvent.ACTION_PERFORMED,
+                "execute",
+                event.modifiers)
+            action.actionPerformed(actionEvent)
+        }
     }
 }
