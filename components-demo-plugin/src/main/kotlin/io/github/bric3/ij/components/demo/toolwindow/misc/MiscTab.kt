@@ -20,12 +20,17 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
+import com.intellij.openapi.editor.impl.EditorCssFontResolver
 import com.intellij.openapi.observable.properties.AtomicLazyProperty
+import com.intellij.openapi.observable.properties.PropertyGraph
 import com.intellij.openapi.observable.util.bindVisible
+import com.intellij.openapi.observable.util.transform
+import com.intellij.openapi.observable.util.trim
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.DumbAwareToggleAction
 import com.intellij.openapi.ui.popup.util.PopupUtil
 import com.intellij.ui.CollectionComboBoxModel
+import com.intellij.ui.JBColor
 import com.intellij.ui.dsl.builder.Align
 import com.intellij.ui.dsl.builder.AlignX
 import com.intellij.ui.dsl.builder.Cell
@@ -37,7 +42,10 @@ import com.intellij.ui.dsl.gridLayout.UnscaledGaps
 import com.intellij.ui.hover.ListHoverListener
 import com.intellij.ui.tabs.TabInfo
 import com.intellij.ui.util.preferredWidth
+import com.intellij.util.ui.ExtendableHTMLViewFactory
+import com.intellij.util.ui.HTMLEditorKitBuilder
 import com.intellij.util.ui.JBUI
+import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.components.BorderLayoutPanel
 import io.github.bric3.ij.components.ExpandableSplitter
 import io.github.bric3.ij.components.combo.ComboBoxWithCustomPopup
@@ -45,10 +53,12 @@ import io.github.bric3.ij.components.combo.ComboBoxWithCustomPopup.Companion.mak
 import io.github.bric3.ij.components.demo.toolwindow.DemoToolWindowFactory
 import io.github.bric3.ij.components.dsl.actionLink
 import io.github.bric3.ij.components.icon.SvgIcon
+import io.github.bric3.ij.ui.util.SvgImageExtension
 import java.awt.Dimension
 import java.io.InputStream
 import javax.annotation.Priority
 import javax.swing.JComponent
+import javax.swing.JEditorPane
 import javax.swing.JLabel
 import javax.swing.JList
 import javax.swing.SwingConstants
@@ -59,9 +69,56 @@ class MiscTab : BorderLayoutPanel() {
             panel {
                 customPopupComboBox()
                 svgIconGroup()
+                htmlPane()
                 expandableSplitter()
             }
         )
+    }
+
+    private fun Panel.htmlPane() {
+        group("Html Pane With SVG") {
+
+            val srcProp = PropertyGraph().property(
+                "https://github.com/bric3/fireplace/actions/workflows/build.yml/badge.svg"
+            )
+            row {
+                textField()
+                    .bindText(srcProp.trim())
+                    .align(AlignX.FILL)
+            }
+
+            row {
+                cell(
+                    JEditorPane().apply {
+                        contentType = "text/html"
+                        editorKit = HTMLEditorKitBuilder()
+                            .withViewFactoryExtensions(
+                                SvgImageExtension(),
+                                ExtendableHTMLViewFactory.Extensions.WORD_WRAP,
+                            )
+                            .withFontResolver(EditorCssFontResolver.getGlobalInstance())
+                            .build()
+
+                        UIUtil.doNotScrollToCaret(this)
+                        caretPosition = 0
+                        isEditable = false
+                        foreground = JBColor.foreground()
+                        isOpaque = false
+                    }
+                ).bindText(
+                    srcProp.transform(
+                        {
+                            """
+                            <html><h4>Shields.io SVG badge</h4>
+                            <p><img src="$it" alt="Fireplace build badge" /></p>
+                            </html>
+                            """.trimIndent()
+                        },
+                        { "" }
+                    )
+                ).align(AlignX.FILL)
+            }
+        }
     }
 
     private fun Panel.customPopupComboBox() {
@@ -90,7 +147,10 @@ class MiscTab : BorderLayoutPanel() {
         }
     }
 
-    class MyPopupCreationContext(private val combo: ComboBoxWithCustomPopup<String>, private val values: Map<String, String>) :
+    class MyPopupCreationContext(
+        private val combo: ComboBoxWithCustomPopup<String>,
+        private val values: Map<String, String>
+    ) :
         ComboBoxWithCustomPopup.PopupCreationContext {
         private val detailsVisibility = AtomicLazyProperty { false }
         private val hoveredDetail = AtomicLazyProperty { "" }
@@ -105,6 +165,7 @@ class MiscTab : BorderLayoutPanel() {
             .withMinimumWidth(150)
             .withPreferredWidth(150)
 
+        @Suppress("UnstableApiUsage")
         private val list = combo.makeComboBoxList().apply {
             object : ListHoverListener() {
                 override fun onHover(list: JList<*>, index: Int) {
@@ -117,23 +178,26 @@ class MiscTab : BorderLayoutPanel() {
                 }
             }.addTo(this)
         }
+
         override fun getPreferredFocusableComponent() = list
 
         override fun createPopupContent(): JComponent {
             return BorderLayoutPanel().apply {
                 addToLeft(details.apply { isVisible = false })
-                addToCenter(BorderLayoutPanel()
-                    .addToCenter(list)
-                    .addToBottom(panel {
-                        row {
-                            actionButtonWithText(object : DumbAwareToggleAction("Show details") {
-                                override fun isSelected(e: AnActionEvent) = detailsVisibility.get()
-                                override fun setSelected(e: AnActionEvent, state: Boolean) =
+                addToCenter(
+                    BorderLayoutPanel()
+                        .addToCenter(list)
+                        .addToBottom(panel {
+                            row {
+                                actionButtonWithText(object : DumbAwareToggleAction("Show details") {
+                                    override fun isSelected(e: AnActionEvent) = detailsVisibility.get()
+                                    override fun setSelected(e: AnActionEvent, state: Boolean) =
                                         detailsVisibility.set(state)
-                                override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
-                            })
-                        }
-                    })
+
+                                    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
+                                })
+                            }
+                        })
                 )
 
                 // Applying the border here, instead of content
@@ -142,21 +206,25 @@ class MiscTab : BorderLayoutPanel() {
                 PopupUtil.applyNewUIBackground(this)
 
                 detailsVisibility.afterChange {
-                    combo.reshapePopup(when (it) {
-                        true -> Dimension(list.width + details.preferredWidth, height)
-                        false -> Dimension(list.width, height)
-                    })
+                    combo.reshapePopup(
+                        when (it) {
+                            true -> Dimension(list.width + details.preferredWidth, height)
+                            false -> Dimension(list.width, height)
+                        }
+                    )
                 }
             }
         }
 
-        private fun Row.actionButtonWithText(action: AnAction) : Cell<ActionButtonWithText> {
-            return cell(ActionButtonWithText(
-                action,
-                action.templatePresentation.clone(),
-                "dsl",
-                ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE
-            ))
+        private fun Row.actionButtonWithText(action: AnAction): Cell<ActionButtonWithText> {
+            return cell(
+                ActionButtonWithText(
+                    action,
+                    action.templatePresentation.clone(),
+                    "dsl",
+                    ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE
+                )
+            )
         }
     }
 
