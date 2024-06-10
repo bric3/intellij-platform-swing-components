@@ -66,12 +66,14 @@ class SvgImageExtension : ExtendableHTMLViewFactory.Extension {
     )
 
     private val cache = Caffeine.newBuilder()
-        .expireAfter(object: Expiry<String, CacheValue> {
+        .expireAfter(object : Expiry<String, CacheValue> {
             override fun expireAfterCreate(k: String?, v: CacheValue?, currentTime: Long): Long {
                 return v?.ttlInSeconds?.let { TimeUnit.SECONDS.toNanos(it) } ?: TimeUnit.DAYS.toNanos(1)
             }
+
             override fun expireAfterUpdate(k: String?, v: CacheValue?, currentTime: Long, currentDuration: Long) =
                 currentDuration
+
             override fun expireAfterRead(k: String?, v: CacheValue?, currentTime: Long, currentDuration: Long) =
                 currentDuration
         })
@@ -92,11 +94,12 @@ class SvgImageExtension : ExtendableHTMLViewFactory.Extension {
             null
         } ?: return null
 
+        // Loading is deferred to avoid blocking JEditorPane waiting on IO
         val deferredDoc = cache.get(url.toString()) { _ ->
             try {
                 url.openConnection().run {
                     // Cache-Control: max-age=300, private
-                    val cacheTtl = this.getHeaderField("cache-control")
+                    val cacheTtl = getHeaderField("cache-control")
                         ?.substringBefore(",")
                         ?.substringAfter("max-age=")
                         ?.toLongOrNull()
@@ -115,11 +118,13 @@ class SvgImageExtension : ExtendableHTMLViewFactory.Extension {
         return SvgImageView(element, deferredDoc)
     }
 
-    private class SvgImageView(element: Element, val deferredDoc: CompletableFuture<SVGDocument?>) : ImageView(element) {
+    private class SvgImageView(element: Element, val deferredDoc: CompletableFuture<SVGDocument?>) :
+        ImageView(element) {
         private val svgDocument: SVGDocument?
             get() = if (deferredDoc.isDone) deferredDoc.get() else null
 
         private val imageBounds = Rectangle()
+
         init {
             deferredDoc.thenAccept {
                 safePreferenceChanged()
@@ -158,8 +163,8 @@ class SvgImageExtension : ExtendableHTMLViewFactory.Extension {
                     val config = GraphicsUtil.setupAAPainting(g)
 
                     doc.render(
-                        null,
-                        g as Graphics2D,
+                        this.container,
+                        g.create() as Graphics2D,
                         ViewBox(
                             rect.x.toFloat(),
                             rect.y.toFloat(),
@@ -181,14 +186,10 @@ class SvgImageExtension : ExtendableHTMLViewFactory.Extension {
          */
         private fun safePreferenceChanged() {
             if (SwingUtilities.isEventDispatchThread()) {
-                val doc = document
-                if (doc is AbstractDocument) {
-                    doc.readLock()
-                }
+                val doc = document as? AbstractDocument
+                doc?.readLock()
                 preferenceChanged(null, true, true)
-                if (doc is AbstractDocument) {
-                    doc.readUnlock()
-                }
+                doc?.readUnlock()
             } else {
                 SwingUtilities.invokeLater { safePreferenceChanged() }
             }
