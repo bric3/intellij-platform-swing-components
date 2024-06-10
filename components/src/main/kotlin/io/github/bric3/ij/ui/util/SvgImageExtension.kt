@@ -13,19 +13,27 @@ package io.github.bric3.ij.ui.util
 
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.github.benmanes.caffeine.cache.Expiry
-import com.github.weisj.jsvg.SVGDocument
 import com.github.weisj.jsvg.attributes.ViewBox
 import com.github.weisj.jsvg.parser.SVGLoader
+import com.intellij.collaboration.async.CompletableFutureUtil.successOnEdt
+import com.intellij.ui.scale.JBUIScale.sysScale
+import com.intellij.ui.scale.ScaleContext
 import com.intellij.util.ui.ExtendableHTMLViewFactory
-import com.intellij.util.ui.GraphicsUtil
 import com.intellij.util.ui.HTMLEditorKitBuilder
+import com.intellij.util.ui.ImageUtil
+import com.intellij.util.ui.UIUtil
+import java.awt.Component
 import java.awt.Graphics
 import java.awt.Graphics2D
+import java.awt.Image
 import java.awt.Rectangle
+import java.awt.RenderingHints
 import java.awt.Shape
+import java.awt.image.BufferedImage
 import java.net.URL
 import java.util.concurrent.CompletableFuture
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeUnit.DAYS
+import java.util.concurrent.TimeUnit.SECONDS
 import javax.swing.SwingUtilities
 import javax.swing.text.AbstractDocument
 import javax.swing.text.Element
@@ -50,7 +58,7 @@ import javax.swing.text.html.ImageView
  *     contentType = "text/html"
  *     editorKit = HTMLEditorKitBuilder()
  *         .withViewFactoryExtensions(
- *             SvgImageExtension,
+ *             SvgImageExtension(),
  *             // other extensions
  *         )
  *         .withFontResolver(EditorCssFontResolver.getGlobalInstance())
@@ -59,16 +67,19 @@ import javax.swing.text.html.ImageView
  * }
  * ```
  */
-class SvgImageExtension : ExtendableHTMLViewFactory.Extension {
+class SvgImageExtension(private val existingSvgImageProvider: (key: String) -> Image?) :
+    ExtendableHTMLViewFactory.Extension {
+    constructor(preloadedSvgs: Map<String, Image> = emptyMap()) : this(preloadedSvgs::get)
+
     private data class CacheValue(
-        val svgDocument: SVGDocument,
+        val svgDocument: Image,
         val ttlInSeconds: Long
     )
 
     private val cache = Caffeine.newBuilder()
         .expireAfter(object : Expiry<String, CacheValue> {
             override fun expireAfterCreate(k: String?, v: CacheValue?, currentTime: Long): Long {
-                return v?.ttlInSeconds?.let { TimeUnit.SECONDS.toNanos(it) } ?: TimeUnit.DAYS.toNanos(1)
+                return v?.ttlInSeconds?.let { SECONDS.toNanos(it) } ?: DAYS.toNanos(1)
             }
 
             override fun expireAfterUpdate(k: String?, v: CacheValue?, currentTime: Long, currentDuration: Long) =
@@ -84,101 +95,111 @@ class SvgImageExtension : ExtendableHTMLViewFactory.Extension {
         // example: <img src="https://img.shields.io/badge/build-passing-brightgreen" alt="Build Passing" />
         if ("img" != element.name) return null
 
-        val src = (element.attributes.getAttribute(HTML.Attribute.SRC) as? String)?.takeIf {
-            it.startsWith("https://")
-        } ?: return null
-
-        val url = try {
-            URL(src)
-        } catch (e: Exception) {
-            null
-        } ?: return null
+        val src = (element.attributes.getAttribute(HTML.Attribute.SRC) as? String) ?: return null
 
         // Loading is deferred to avoid blocking JEditorPane waiting on IO
-        val deferredDoc = cache.get(url.toString()) { _ ->
-            try {
-                url.openConnection().run {
-                    // Cache-Control: max-age=300, private
-                    val cacheTtl = getHeaderField("cache-control")
-                        ?.substringBefore(",")
-                        ?.substringAfter("max-age=")
-                        ?.toLongOrNull()
+        val deferredDoc = {
+            cache.get(src) { srcValue ->
+                try {
+                    URL(srcValue).openConnection().run {
+                        // Cache-Control: max-age=300, private
+                        val cacheTtl = getHeaderField("cache-control")
+                            ?.substringBefore(",")
+                            ?.substringAfter("max-age=")
+                            ?.toLongOrNull()
 
-                    getInputStream().buffered().use { stream ->
-                        SVGLoader().load(stream)?.let {
-                            CacheValue(it, cacheTtl ?: TimeUnit.DAYS.toSeconds(1))
+                        getInputStream().buffered().use { stream ->
+                            SVGLoader().load(stream)?.let { svgDoc ->
+                                val size = svgDoc.size()
+                                val img = BufferedImage(
+                                    size.width.toInt(),
+                                    size.height.toInt(),
+                                    BufferedImage.TYPE_INT_ARGB
+                                ).apply {
+                                    val graphics = createGraphics()
+                                    graphics.setRenderingHint(
+                                        RenderingHints.KEY_ANTIALIASING,
+                                        RenderingHints.VALUE_ANTIALIAS_ON
+                                    )
+                                    svgDoc.render(
+                                        null as Component?,
+                                        graphics as Graphics2D,
+                                        ViewBox(size)
+                                    )
+                                    graphics.dispose()
+                                }
+
+                                CacheValue(img, cacheTtl ?: DAYS.toSeconds(1))
+                            }
                         }
                     }
+                } catch (e: Exception) {
+                    null
                 }
-            } catch (e: Exception) {
-                null
-            }
-        }.thenApply { it?.svgDocument }
+            }.thenApply { it?.svgDocument }
+        }
 
         return SvgImageView(element, deferredDoc)
     }
 
-    private class SvgImageView(element: Element, val deferredDoc: CompletableFuture<SVGDocument?>) :
+    private class SvgImageView(element: Element, deferredDoc: () -> CompletableFuture<Image?>) :
         ImageView(element) {
-        private val svgDocument: SVGDocument?
-            get() = if (deferredDoc.isDone) deferredDoc.get() else null
+
+        private val svgImageProvider = deferredDoc().successOnEdt() {
+            safePreferenceChanged()
+            container?.revalidate()
+            container?.repaint(
+                imageBounds.x,
+                imageBounds.y,
+                it?.getWidth(container) ?: imageBounds.width,
+                it?.getHeight(container) ?: imageBounds.height,
+            )
+            it
+        }
+
+        private val svgImage: Image?
+            get() = if (svgImageProvider.isDone) {
+                svgImageProvider.get()
+            } else {
+                null
+            }
 
         private val imageBounds = Rectangle()
 
-        init {
-            deferredDoc.thenAccept {
-                safePreferenceChanged()
-                container.repaint(
-                    imageBounds.x,
-                    imageBounds.y,
-                    imageBounds.width,
-                    imageBounds.height,
-                )
-            }
-        }
+        override fun getMinimumSpan(axis: Int) = getPreferredSpan(axis)
 
-        override fun getPreferredSpan(axis: Int): Float {
-            return when (val doc = svgDocument) {
-                null -> {
-                    super.getPreferredSpan(axis)
-                }
+        override fun getMaximumSpan(axis: Int) = getPreferredSpan(axis)
 
-                else -> {
-                    when (axis) {
-                        X_AXIS -> doc.size().width
-                        Y_AXIS -> doc.size().height
-                        else -> throw IllegalArgumentException("Invalid axis: $axis")
-                    }
+        override fun getPreferredSpan(axis: Int) = when (val img = svgImage) {
+            null -> super.getPreferredSpan(axis)
+            else -> {
+                when (axis) {
+                    X_AXIS -> img.getWidth(container) / sysScale()
+                    Y_AXIS -> img.getHeight(container) / sysScale()
+                    else -> throw IllegalArgumentException("Invalid axis: $axis")
                 }
             }
         }
 
         override fun paint(g: Graphics, a: Shape) {
-            val rect = if ((a is Rectangle)) a else a.bounds
+            val rect = a.bounds
             imageBounds.bounds = rect
 
-            when (val doc = svgDocument) {
+            when (val img = svgImage) {
                 null -> super.paint(g, a)
                 else -> {
-                    val config = GraphicsUtil.setupAAPainting(g)
-
-                    doc.render(
-                        this.container,
-                        g.create() as Graphics2D,
-                        ViewBox(
-                            rect.x.toFloat(),
-                            rect.y.toFloat(),
-                            doc.size().width,
-                            doc.size().height
-                        )
+                    UIUtil.drawImage(
+                        g,
+                        ImageUtil.ensureHiDPI(img, ScaleContext.create(null as Component?)),
+                        rect.x,
+                        rect.y,
+                        container
                     )
-
-                    config.restore()
                 }
             }
         }
 
-        // This view controls the loading, so avoid loading anything in parent ImageView
+        // This view controls the loading, using null avoids loading anything in parent ImageView
         override fun getImageURL(): URL? = null
 
         /**
