@@ -53,6 +53,7 @@ import io.github.bric3.ij.components.combo.ComboBoxWithCustomPopup.Companion.mak
 import io.github.bric3.ij.components.demo.toolwindow.DemoToolWindowFactory
 import io.github.bric3.ij.components.dsl.actionLink
 import io.github.bric3.ij.components.icon.SvgIcon
+import io.github.bric3.ij.ui.util.JsvgProviderWithCacheControlAwareCache
 import io.github.bric3.ij.ui.util.SvgImageExtension
 import java.awt.Dimension
 import java.io.InputStream
@@ -77,9 +78,11 @@ class MiscTab : BorderLayoutPanel() {
 
     private fun Panel.htmlPane() {
         group("Html Pane With SVG") {
+            val resource = MiscTab::class.java.getResource("/build-passing-brightgreen.svg")
 
             val srcProp = PropertyGraph().property(
-                "https://github.com/bric3/fireplace/actions/workflows/build.yml/badge.svg"
+                resource?.toString()
+                    ?: "https://github.com/bric3/fireplace/actions/workflows/build.yml/badge.svg"
             )
             row {
                 textField()
@@ -93,7 +96,9 @@ class MiscTab : BorderLayoutPanel() {
                         contentType = "text/html"
                         editorKit = HTMLEditorKitBuilder()
                             .withViewFactoryExtensions(
-                                SvgImageExtension(),
+                                SvgImageExtension(
+                                    JsvgProviderWithCacheControlAwareCache()
+                                ),
                                 ExtendableHTMLViewFactory.Extensions.WORD_WRAP,
                             )
                             .withFontResolver(EditorCssFontResolver.getGlobalInstance())
@@ -111,10 +116,11 @@ class MiscTab : BorderLayoutPanel() {
                             """
                             <html><h4>Shields.io SVG badge</h4>
                             <p><img src="$it" alt="Fireplace build badge" /></p>
+                            <p><img src="$it" alt="Fireplace build badge" /></p>
                             </html>
                             """.trimIndent()
                         },
-                        { "" }
+                        { "" } // ignore
                     )
                 ).align(AlignX.FILL)
             }
