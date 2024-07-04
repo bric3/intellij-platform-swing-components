@@ -10,7 +10,9 @@ junit-jupiter = "5.10.3"
 assertj = "3.26.0"
 
 # plugins
-changelog = "2.2.0"
+changelog = "2.2.1"
+intellij-platform-plugin = "2.0.0-beta8"
+idea-ext = "1.1.7"
 detekt = "1.23.6"
 dokka = "1.9.20"
 gradleIntelliJPlugin = "1.17.4"
@@ -33,8 +35,9 @@ detektplugins = ["detekt-formatting"]
 junit-jupiter = ["junit-jupiter-api", "junit-jupiter-engine"]
 
 [plugins]
-changelog = { id = "org.jetbrains.changelog", version.ref = "changelog" }
-gradleIntelliJPlugin = { id = "org.jetbrains.intellij", version.ref = "gradleIntelliJPlugin" }
+jetbrains-changelog = { id = "org.jetbrains.changelog", version.ref = "changelog" }
+jetbrains-intellijPlatform = { id = "org.jetbrains.intellij.platform", version.ref = "intellij-platform-plugin" }
+jetbrains-idea-ext = { id = "org.jetbrains.gradle.plugin.idea-ext", version.ref = "idea-ext" }
 kotlin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }

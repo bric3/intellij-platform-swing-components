@@ -17,6 +17,8 @@ fun environment(key: String) = providers.environmentVariable(key)
 plugins {
     alias(libs.plugins.detekt)
     alias(libs.plugins.spotless)
+    // For https://github.com/JetBrains/intellij-platform-gradle-plugin/issues/1680
+    alias(libs.plugins.jetbrains.intellijPlatform) apply false
 }
 
 val detektPlugins: Configuration = configurations.getByName("detektPlugins")
