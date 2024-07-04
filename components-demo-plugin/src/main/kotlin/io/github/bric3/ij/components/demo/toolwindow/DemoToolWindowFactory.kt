@@ -17,6 +17,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowAnchor
 import com.intellij.openapi.wm.ToolWindowFactory
+import com.intellij.ui.content.Content
 import com.intellij.ui.content.ContentFactory
 import com.intellij.ui.tabs.TabInfo
 import io.github.classgraph.ClassGraph
@@ -43,11 +44,15 @@ internal class DemoToolWindowFactory : ToolWindowFactory {
 
     override fun shouldBeAvailable(project: Project) = true
 
-    private fun contents(contentFactory: ContentFactory) = contentClasses().map {
-        contentFactory.createContent(it.component, it.text, false)
+    private fun contents(contentFactory: ContentFactory) = tabFactories().map {
+        val tabInfo = it.createTab()
+
+        contentFactory.createContent(tabInfo.component, tabInfo.text, false).apply {
+            it.customizeContent(this)
+        }
     }
 
-    private fun contentClasses(): List<TabInfo> {
+    private fun tabFactories(): Sequence<TabFactory> {
         return ClassGraph()
             .enableAllInfo()
             .acceptPackages(javaClass.packageName)
@@ -58,12 +63,13 @@ internal class DemoToolWindowFactory : ToolWindowFactory {
                     .map { it.loadClass(TabFactory::class.java) }
                     .sortedBy { it.getAnnotation(Priority::class.java)?.value ?: 1000 }
                     .map { it.getDeclaredConstructor().newInstance() }
-                    .map { it.createTab() }
                     .toList()
             }
+            .asSequence()
     }
 
     interface TabFactory {
         fun createTab(): TabInfo
+        fun customizeContent(content: Content) {}
     }
 }
