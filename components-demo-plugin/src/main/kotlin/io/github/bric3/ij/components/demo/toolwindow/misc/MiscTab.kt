@@ -81,7 +81,7 @@ import javax.swing.JLabel
 import javax.swing.JList
 import javax.swing.SwingConstants
 
-class MiscTab(private val tabScope: CoroutineScope) : BorderLayoutPanel() {
+class MiscTab(private val tabScope: CoroutineScope) : BorderLayoutPanel(), Disposable {
     init {
         addToCenter(
             panel {
@@ -169,7 +169,7 @@ class MiscTab(private val tabScope: CoroutineScope) : BorderLayoutPanel() {
             }
 
             row {
-                cell(TextFieldWithPopup().createComponent()).align(AlignX.RIGHT)
+                cell(TextFieldWithPopup().createComponent(this@MiscTab)).align(AlignX.RIGHT)
             }
         }
     }
@@ -342,12 +342,14 @@ class MiscTab(private val tabScope: CoroutineScope) : BorderLayoutPanel() {
             setText("Miscellaneous")
         }
     }
+
+    override fun dispose() {}
 }
 
 class TextFieldWithPopup {
     val mySelectedValue = MutableStateFlow("")
 
-    fun createComponent(): JComponent {
+    fun createComponent(parentDisposable: Disposable): JComponent {
         val values = mapOf(
             "a" to "details about a",
             "b" to "details about b",
@@ -376,7 +378,7 @@ class TextFieldWithPopup {
 
         // This is an example API usage, and can be replaced by the Kotlin UI DSL `.validateOnApply`,
         // and similar methods
-        ComponentValidator({  })
+        ComponentValidator(parentDisposable)
             .withValidator(Supplier {
                 if (!textField.text.matches("[a-n]+".toRegex())) {
                     ValidationInfo("Only 'a' to 'n'", textField)
