@@ -10,15 +10,26 @@
  * SPDX-License-Identifier: MPL-2.0
  */
 fun properties(key: String) = providers.gradleProperty(key)
+// gradleProperty do not find sub-project gradle.properties
+// https://github.com/gradle/gradle/issues/23572
+fun ProviderFactory.localGradleProperty(name: String): Provider<String> = provider {
+    if (project.hasProperty(name)) project.property(name)?.toString() else null
+}
 
 plugins {
     java
     alias(libs.plugins.kotlin)
-    alias(libs.plugins.gradleIntelliJPlugin)
+    alias(libs.plugins.jetbrains.intellijPlatform)
+    alias(libs.plugins.jetbrains.idea.ext)
 }
 
 repositories {
     mavenCentral()
+
+    intellijPlatform {
+        defaultRepositories()
+        jetbrainsRuntime()
+    }
 }
 
 dependencies {
@@ -31,12 +42,32 @@ kotlin {
     jvmToolchain(17)
 }
 
-intellij {
-    pluginName = "IntelliJ Platform Swing Components Demo"
-    version = properties("demoPlatformVersion")
-    type = "IC"
-    updateSinceUntilBuild = true
+// intellij {
+//     pluginName = "IntelliJ Platform Swing Components Demo"
+//     version = properties("demoPlatformVersion")
+//     type = "IC"
+//     updateSinceUntilBuild = true
+// }
+
+// Read more:
+// * https://github.com/JetBrains/intellij-platform-gradle-plugin/
+// * https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin.html
+intellijPlatform {
+    // projectName.set("excalidraw-intellij-plugin")
+    pluginConfiguration {
+        id = "components-demo"
+        name = "IntelliJ Platform Swing Components Local Demo"
+        version = providers.gradleProperty("demoPlatformVersion")
+
+        // ideaVersion {
+        //     sinceBuild = providers.gradleProperty("pluginSinceBuild")
+        //     untilBuild = provider { null } // removes until-build in plugin.xml
+        // }
+    }
+
+    buildSearchableOptions = false
 }
+
 
 tasks {
     test {
@@ -51,14 +82,15 @@ tasks {
         )
     }
 
-    patchPluginXml {
-        version = properties("pluginVersion")
-        sinceBuild = properties("pluginSinceBuild")
-        untilBuild = properties("pluginUntilBuild")
-    }
+    // patchPluginXml {
+    //     version = properties("pluginVersion")
+    //     sinceBuild = properties("pluginSinceBuild")
+    //     untilBuild = properties("pluginUntilBuild")
+    // }
 
     listOf(
-        runPluginVerifier,
+        publishPlugin,
+        signPlugin,
         verifyPlugin,
         instrumentCode,
         buildSearchableOptions,
