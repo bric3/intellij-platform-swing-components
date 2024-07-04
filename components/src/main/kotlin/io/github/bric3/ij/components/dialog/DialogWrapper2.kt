@@ -46,7 +46,6 @@ abstract class DialogWrapper2 : DialogWrapper {
     constructor(project: Project?, parentComponent: Component?, canBeParent: Boolean, ideModalityType: IdeModalityType, createSouth: Boolean) : super(project, parentComponent, canBeParent, ideModalityType, createSouth)
     constructor(project: Project?) : super(project)
     constructor(canBeParent: Boolean) : super(canBeParent)
-    constructor(canBeParent: Boolean, applicationModalIfPossible: Boolean) : super(canBeParent, applicationModalIfPossible)
     constructor(project: Project?, canBeParent: Boolean, applicationModalIfPossible: Boolean) : super(project, canBeParent, applicationModalIfPossible)
     constructor(parent: Component, canBeParent: Boolean) : super(parent, canBeParent)
     constructor(peerFactory: Function<in DialogWrapper, out DialogWrapperPeer>) : super(peerFactory)

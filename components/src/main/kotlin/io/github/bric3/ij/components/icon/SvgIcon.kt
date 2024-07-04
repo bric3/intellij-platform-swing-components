@@ -36,7 +36,6 @@ import java.awt.Graphics2D
 import java.io.InputStream
 import java.net.URLDecoder
 import javax.swing.Icon
-import javax.swing.JComponent
 
 private const val ICON_SIZE = 20
 
@@ -63,7 +62,7 @@ class SvgIcon(
         )
 
         val iconSizeFloat = JBUIScale.scale(size.toFloat())
-        image.render(c as JComponent?, g, ViewBox(x.toFloat(), y.toFloat(), iconSizeFloat, iconSizeFloat))
+        image.render(c, g, ViewBox(x.toFloat(), y.toFloat(), iconSizeFloat, iconSizeFloat))
     }
 
     override fun getIconWidth(): Int {
