@@ -24,6 +24,7 @@ import io.github.bric3.ij.components.demo.toolwindow.tables.TableFactory.numberS
 import io.github.bric3.ij.components.demo.toolwindow.tables.TableFactory.table
 import io.github.bric3.ij.components.table.ScalableJBTable
 import io.github.bric3.ij.components.table.ScalableTableView
+import kotlinx.coroutines.CoroutineScope
 import javax.annotation.Priority
 
 class ScalableTablesTab : BorderLayoutPanel() {
@@ -61,7 +62,7 @@ class ScalableTablesTab : BorderLayoutPanel() {
 
     @Priority(1)
     class Factory : DemoToolWindowFactory.TabFactory {
-        override fun createTab() = TabInfo(ScalableTablesTab()).apply {
+        override fun createTab(tabScope: CoroutineScope) = TabInfo(ScalableTablesTab()).apply {
             setText("Scalable Tables")
         }
     }

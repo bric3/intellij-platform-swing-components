@@ -131,7 +131,7 @@ class PlaygroundTab: BorderLayoutPanel() {
 
     @Priority(4)
     class Factory : DemoToolWindowFactory.TabFactory {
-        override fun createTab() = TabInfo(PlaygroundTab()).apply {
+        override fun createTab(tabScope: CoroutineScope) = TabInfo(PlaygroundTab()).apply {
             setText("Playground")
         }
 

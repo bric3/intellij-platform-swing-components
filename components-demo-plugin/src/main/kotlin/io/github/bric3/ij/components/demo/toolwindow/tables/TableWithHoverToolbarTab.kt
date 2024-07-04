@@ -28,6 +28,7 @@ import com.intellij.util.ui.components.BorderLayoutPanel
 import io.github.bric3.ij.components.HoveringToolbar
 import io.github.bric3.ij.components.demo.toolwindow.DemoToolWindowFactory
 import io.github.bric3.ij.components.table.ScalableTableView
+import kotlinx.coroutines.CoroutineScope
 import javax.annotation.Priority
 import javax.swing.ListSelectionModel
 
@@ -106,7 +107,7 @@ class TableWithHoverToolbarTab : BorderLayoutPanel() {
 
     @Priority(2)
     class Factory : DemoToolWindowFactory.TabFactory {
-        override fun createTab() = TabInfo(TableWithHoverToolbarTab()).apply {
+        override fun createTab(tabScope: CoroutineScope) = TabInfo(TableWithHoverToolbarTab()).apply {
             setText("Table with Hover Toolbar")
         }
     }

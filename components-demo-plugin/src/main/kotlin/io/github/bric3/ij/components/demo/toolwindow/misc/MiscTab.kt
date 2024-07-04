@@ -81,7 +81,7 @@ import javax.swing.JLabel
 import javax.swing.JList
 import javax.swing.SwingConstants
 
-class MiscTab : BorderLayoutPanel() {
+class MiscTab(private val tabScope: CoroutineScope) : BorderLayoutPanel() {
     init {
         addToCenter(
             panel {
@@ -338,7 +338,7 @@ class MiscTab : BorderLayoutPanel() {
 
     @Priority(3)
     class Factory : DemoToolWindowFactory.TabFactory {
-        override fun createTab() = TabInfo(MiscTab()).apply {
+        override fun createTab(tabScope: CoroutineScope) = TabInfo(MiscTab(tabScope)).apply {
             setText("Miscellaneous")
         }
     }

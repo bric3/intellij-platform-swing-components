@@ -14,17 +14,22 @@ package io.github.bric3.ij.components.demo.toolwindow
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowAnchor
 import com.intellij.openapi.wm.ToolWindowFactory
+import com.intellij.platform.util.coroutines.childScope
 import com.intellij.ui.content.Content
 import com.intellij.ui.content.ContentFactory
 import com.intellij.ui.tabs.TabInfo
 import io.github.classgraph.ClassGraph
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.cancel
 import javax.annotation.Priority
 
 
-internal class DemoToolWindowFactory : ToolWindowFactory {
+internal class DemoToolWindowFactory(private val scope: CoroutineScope) : ToolWindowFactory {
     override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
         toolWindow.setAnchor(ToolWindowAnchor.RIGHT, null)
         contents(ContentFactory.getInstance()).forEach {
@@ -45,10 +50,13 @@ internal class DemoToolWindowFactory : ToolWindowFactory {
     override fun shouldBeAvailable(project: Project) = true
 
     private fun contents(contentFactory: ContentFactory) = tabFactories().map {
-        val tabInfo = it.createTab()
+        val childScope = scope.childScope(CoroutineName(it::class.qualifiedName ?: "Anonymous TabFactory"))
+        val tabInfo = it.createTab(childScope)
 
         contentFactory.createContent(tabInfo.component, tabInfo.text, false).apply {
             it.customizeContent(this)
+
+            Disposer.register(this) { childScope.cancel("Content from ${it::class.qualifiedName} is disposed") }
         }
     }
 
@@ -69,7 +77,7 @@ internal class DemoToolWindowFactory : ToolWindowFactory {
     }
 
     interface TabFactory {
-        fun createTab(): TabInfo
+        fun createTab(tabScope: CoroutineScope): TabInfo
         fun customizeContent(content: Content) {}
     }
 }
