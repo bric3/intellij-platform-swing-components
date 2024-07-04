@@ -12,14 +12,18 @@
 package io.github.bric3.ij.components.demo.toolwindow.misc
 
 import com.intellij.icons.AllIcons
+import com.intellij.ide.DataManager
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.actionSystem.impl.ActionButtonWithText
+import com.intellij.openapi.application.EDT
 import com.intellij.openapi.editor.impl.EditorCssFontResolver
 import com.intellij.openapi.observable.properties.AtomicLazyProperty
 import com.intellij.openapi.observable.properties.PropertyGraph
@@ -28,9 +32,13 @@ import com.intellij.openapi.observable.util.transform
 import com.intellij.openapi.observable.util.trim
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.DumbAwareToggleAction
+import com.intellij.openapi.ui.ComponentValidator
+import com.intellij.openapi.ui.ValidationInfo
+import com.intellij.openapi.ui.addPreferredFocusedComponent
 import com.intellij.openapi.ui.popup.util.PopupUtil
 import com.intellij.ui.CollectionComboBoxModel
 import com.intellij.ui.JBColor
+import com.intellij.ui.SimpleListCellRenderer
 import com.intellij.ui.dsl.builder.Align
 import com.intellij.ui.dsl.builder.AlignX
 import com.intellij.ui.dsl.builder.Cell
@@ -50,13 +58,22 @@ import com.intellij.util.ui.components.BorderLayoutPanel
 import io.github.bric3.ij.components.ExpandableSplitter
 import io.github.bric3.ij.components.combo.ComboBoxWithCustomPopup
 import io.github.bric3.ij.components.combo.ComboBoxWithCustomPopup.Companion.makeComboBoxList
+import io.github.bric3.ij.components.combo.ComboPopupSupport.makeChoicesList
+import io.github.bric3.ij.components.combo.CustomPopupTextField
+import io.github.bric3.ij.components.combo.CustomPopupTextField.PopupCreationContext
 import io.github.bric3.ij.components.demo.toolwindow.DemoToolWindowFactory
 import io.github.bric3.ij.components.dsl.actionLink
 import io.github.bric3.ij.components.icon.SvgIcon
 import io.github.bric3.ij.ui.util.JsvgProviderWithCacheControlAwareCache
 import io.github.bric3.ij.ui.util.SvgImageExtension
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import java.awt.Dimension
 import java.io.InputStream
+import java.util.function.Supplier
 import javax.annotation.Priority
 import javax.swing.JComponent
 import javax.swing.JEditorPane
@@ -144,20 +161,23 @@ class MiscTab : BorderLayoutPanel() {
                 )
                 cell(
                     object : ComboBoxWithCustomPopup<String>(CollectionComboBoxModel(values.keys.sorted())) {
-                        override fun getPopupCreationContext(parentDisposable: Disposable): PopupCreationContext {
-                            return MyPopupCreationContext(this, values)
+                        override fun getPopupCreationContext(parentDisposable: Disposable): ComboBoxWithCustomPopup.PopupCreationContext {
+                            return MyComboBoxBasedPopupCreationContext(this, values)
                         }
                     }
                 ).align(AlignX.RIGHT)
             }
+
+            row {
+                cell(TextFieldWithPopup().createComponent()).align(AlignX.RIGHT)
+            }
         }
     }
 
-    class MyPopupCreationContext(
+    class MyComboBoxBasedPopupCreationContext(
         private val combo: ComboBoxWithCustomPopup<String>,
         private val values: Map<String, String>
-    ) :
-        ComboBoxWithCustomPopup.PopupCreationContext {
+    ) : ComboBoxWithCustomPopup.PopupCreationContext {
         private val detailsVisibility = AtomicLazyProperty { false }
         private val hoveredDetail = AtomicLazyProperty { "" }
         private val details = panel {
@@ -320,6 +340,148 @@ class MiscTab : BorderLayoutPanel() {
     class Factory : DemoToolWindowFactory.TabFactory {
         override fun createTab() = TabInfo(MiscTab()).apply {
             setText("Miscellaneous")
+        }
+    }
+}
+
+class TextFieldWithPopup {
+    val mySelectedValue = MutableStateFlow("")
+
+    fun createComponent(): JComponent {
+        val values = mapOf(
+            "a" to "details about a",
+            "b" to "details about b",
+            "c" to "details about c",
+        )
+        val choices = DefaultActionGroup().apply {
+            for (value in values.keys) {
+                add(DumbAwareAction.create(value) {
+                    mySelectedValue.value = value
+                }.apply {
+                    templatePresentation.description = values[value]
+                })
+            }
+        }
+
+        val textField = CustomPopupTextField {
+            MyTextFieldBasedPopupCreationContext(it, choices)
+        }
+
+        CoroutineScope(Dispatchers.EDT).launch {
+            mySelectedValue.collectLatest {
+                textField.text = it
+            }
+        }
+
+
+        // This is an example API usage, and can be replaced by the Kotlin UI DSL `.validateOnApply`,
+        // and similar methods
+        ComponentValidator({  })
+            .withValidator(Supplier {
+                if (!textField.text.matches("[a-n]+".toRegex())) {
+                    ValidationInfo("Only 'a' to 'n'", textField)
+                } else {
+                    null
+                }
+            })
+            .andRegisterOnDocumentListener(textField)
+            .installOn(textField)
+
+        return textField
+    }
+
+    class MyTextFieldBasedPopupCreationContext(
+        private val parentTextField: CustomPopupTextField,
+        choices: ActionGroup
+    ) : PopupCreationContext {
+        private val detailsVisibility = AtomicLazyProperty { false }
+        private val hoveredDetail = AtomicLazyProperty { "" }
+        private val details = panel {
+            group("Details:") {
+                row {
+                    label("").bindText(hoveredDetail)
+                }
+            }
+            customize(UnscaledGaps(left = 3, right = 3))
+        }.bindVisible(detailsVisibility)
+            .withMinimumWidth(150)
+            .withPreferredWidth(150)
+
+        @Suppress("UnstableApiUsage")
+        private val list = parentTextField.makeChoicesList(
+            renderer = SimpleListCellRenderer.create { label, value, _ ->
+                label.text = value?.templatePresentation?.text ?: "N/A"
+            },
+            items = choices.getChildren(null).toList(),
+            onClick = { _, event, value, _ ->
+                val dataContext = DataManager.getInstance().getDataContext(parentTextField)
+                ActionUtil.performActionDumbAwareWithCallbacks(
+                    value,
+                    AnActionEvent.createFromInputEvent(event, "MyPopupCreationContext", null, dataContext)
+                )
+                parentTextField.popup.hidePopup()
+            }
+        ).apply {
+            object : ListHoverListener() {
+                override fun onHover(list: JList<*>, index: Int) {
+                    hoveredDetail.set(
+                        when (index) {
+                            -1 -> ""
+                            else -> (list.model.getElementAt(index) as? AnAction)
+                                ?.templatePresentation?.description
+                                ?: ""
+                        }
+                    )
+                }
+            }.addTo(this)
+        }
+
+        override fun createPopupContent(): JComponent {
+            return BorderLayoutPanel().apply {
+                addToLeft(details.apply { isVisible = false })
+                addToCenter(
+                    BorderLayoutPanel()
+                        .addToCenter(list)
+                        .addToBottom(panel {
+                            row {
+                                actionButtonWithText(object : DumbAwareToggleAction("Show Details") {
+                                    override fun isSelected(e: AnActionEvent) = detailsVisibility.get()
+                                    override fun setSelected(e: AnActionEvent, state: Boolean) =
+                                        detailsVisibility.set(state)
+
+                                    override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
+                                })
+                            }
+                        })
+                )
+
+                // Applying the border here, instead of content
+                // to mimic other popup lists.
+                border = JBUI.Borders.empty(PopupUtil.getListInsets(false, false))
+                PopupUtil.applyNewUIBackground(this)
+
+                detailsVisibility.afterChange {
+                    parentTextField.popup.reshapePopup(
+                        when (it) {
+                            true -> Dimension(list.width + details.preferredWidth, height)
+                            false -> Dimension(list.width, height)
+                        }
+                    )
+                }
+
+                addPreferredFocusedComponent(list)
+            }
+        }
+
+        private fun Row.actionButtonWithText(action: AnAction): Cell<ActionButtonWithText> {
+            return cell(
+                ActionButtonWithText(
+                    action,
+                    action.templatePresentation.clone(),
+                    "dsl",
+                    ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE
+                )
+            )
         }
     }
 }

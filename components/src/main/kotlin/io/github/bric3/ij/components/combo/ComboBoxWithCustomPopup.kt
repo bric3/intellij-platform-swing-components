@@ -471,7 +471,7 @@ abstract class ComboBoxWithCustomPopup<T>(model: CollectionComboBoxModel<T>) :
                 PopupUtil.applyNewUIBackground(this)
                 ScrollingUtil.installActions(this)
                 // 232 Use TreeUIHelper.installListSpeedSearch(javax.swing.JList<T>, com.intellij.util.containers.Convertor<? super T,java.lang.String>)
-                ListSpeedSearch(this, Functions.identity())
+                ListSpeedSearch.installOn(this, Functions.identity())
                 ListHoverListener.DEFAULT.addTo(this)
             }
         }
