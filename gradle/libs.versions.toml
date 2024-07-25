@@ -31,7 +31,7 @@ assertj = { module = "org.assertj:assertj-core", version.ref = "assertj" }
 detekt-formatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }
 
 [bundles]
-detektplugins = ["detekt-formatting"]
+detekt-plugins = ["detekt-formatting"]
 junit-jupiter = ["junit-jupiter-api", "junit-jupiter-engine"]
 
 [plugins]

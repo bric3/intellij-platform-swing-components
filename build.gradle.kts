@@ -24,7 +24,7 @@ plugins {
 val detektPlugins: Configuration = configurations.getByName("detektPlugins")
 
 dependencies {
-    detektPlugins(libs.bundles.detektplugins)
+    detektPlugins(libs.bundles.detekt.plugins)
 }
 
 repositories {
