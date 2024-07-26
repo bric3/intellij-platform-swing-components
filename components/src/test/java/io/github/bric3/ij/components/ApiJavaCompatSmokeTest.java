@@ -14,13 +14,16 @@ package io.github.bric3.ij.components;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.observable.properties.AtomicBooleanProperty;
+import com.intellij.testFramework.junit5.TestApplication;
 import com.intellij.util.ui.components.BorderLayoutPanel;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import javax.swing.*;
 import java.awt.*;
 
+@TestApplication
 public class ApiJavaCompatSmokeTest {
+
     @Test
     public void for_ColoredJProgressBar() {
         ColoredJProgressBar progressBar = new ColoredJProgressBar(1, 100);

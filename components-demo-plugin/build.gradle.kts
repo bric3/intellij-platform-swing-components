@@ -10,6 +10,7 @@
  * SPDX-License-Identifier: MPL-2.0
  */
 import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
+import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 
 fun properties(key: String) = providers.gradleProperty(key)
 // gradleProperty do not find sub-project gradle.properties
@@ -27,7 +28,6 @@ plugins {
 
 repositories {
     mavenCentral()
-    println(this::class.java.classLoader)
     intellijPlatform {
         defaultRepositories()
         jetbrainsRuntime()
@@ -41,14 +41,20 @@ dependencies {
 
     intellijPlatform {
         create(
-            IntelliJPlatformType.IntellijIdeaCommunity,
-            providers.localGradleProperty("demoPlatformVersion")
+            type = IntelliJPlatformType.IntellijIdeaCommunity,
+            version = providers.localGradleProperty("demoPlatformVersion"),
+            useInstaller = false
         )
         plugins(providers.localGradleProperty("demoPlatformPlugins").map { it.split(',') }.getOrElse(emptyList()))
         bundledPlugins(providers.localGradleProperty("demoPlatformBundledPlugins").map { it.split(',') }.getOrElse(emptyList()))
 
+        testFramework(TestFrameworkType.Platform)
+        testFramework(TestFrameworkType.JUnit5)
+
         instrumentationTools()
     }
+
+    testImplementation(libs.bundles.junit.jupiter)
 }
 
 kotlin {

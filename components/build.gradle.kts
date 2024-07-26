@@ -12,6 +12,7 @@
 import org.jetbrains.dokka.gradle.DokkaTask
 import org.jetbrains.dokka.gradle.DokkaTaskPartial
 import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
+import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 fun properties(key: String) = providers.gradleProperty(key)
@@ -48,12 +49,18 @@ dependencies {
 
     intellijPlatform {
         create(
-            IntelliJPlatformType.IntellijIdeaCommunity,
-            providers.localGradleProperty("platformVersion")
+            type = IntelliJPlatformType.IntellijIdeaCommunity,
+            version = providers.localGradleProperty("platformVersion"),
+            useInstaller = false
         )
+
+        testFramework(TestFrameworkType.Platform)
+        testFramework(TestFrameworkType.JUnit5)
 
         pluginVerifier()
     }
+
+    testImplementation(libs.bundles.junit.jupiter)
 }
 
 kotlin {
