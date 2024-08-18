@@ -150,7 +150,6 @@ tasks {
         runIde,
         prepareSandbox,
         // don't disable prepareTestSandbox it is needed for tests
-        prepareTestIdeUiSandbox,
         prepareTestIdePerformanceSandbox,
         buildSearchableOptions,
         jarSearchableOptions,
