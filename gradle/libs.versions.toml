@@ -6,7 +6,7 @@ classgraph = "4.8.177"
 
 kotlin = "2.0.21"
 kotlin-coroutines = "1.6.4"
-junit-jupiter = "5.11.2"
+junit-jupiter = "5.11.3"
 assertj = "3.26.3"
 
 # plugins
