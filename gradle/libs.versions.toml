@@ -11,7 +11,7 @@ assertj = "3.26.3"
 
 # plugins
 changelog = "2.2.1"
-intellij-platform-plugin = "2.2.0"
+intellij-platform-plugin = "2.2.1"
 idea-ext = "1.1.9"
 detekt = "1.23.7"
 dokka = "1.9.20"
