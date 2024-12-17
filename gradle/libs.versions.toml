@@ -14,7 +14,7 @@ changelog = "2.2.1"
 intellij-platform-plugin = "2.2.1"
 idea-ext = "1.1.9"
 detekt = "1.23.7"
-dokka = "1.9.20"
+dokka = "2.0.0"
 gradleIntelliJPlugin = "1.17.4"
 spotless = "6.25.0"
 
