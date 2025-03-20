@@ -1,7 +1,7 @@
 [versions]
 # libraries
 annotations = "26.0.2"
-jsvg = "1.7.0"
+jsvg = "1.7.1"
 classgraph = "4.8.179"
 
 kotlin = "2.1.10"
